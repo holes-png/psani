@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klávesnicový Mistr ⌨️</title>
+  <!-- Načtení Tailwind CSS pro moderní vzhled -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Načtení Google Fonts pro stylové písmo -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+    }
+    @keyframes shakeHero {
+      0%, 100% { transform: translateX(0) scale(1); }
+      25% { transform: translateX(-10px) rotate(-8deg) scale(0.95); }
+      75% { transform: translateX(10px) rotate(8deg) scale(0.95); }
+    }
+    @keyframes breatheHero {
+      0%, 100% { transform: translateY(0) scaleY(1); }
+      50% { transform: translateY(-5px) scaleY(1.03); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    @keyframes wind {
+      0%, 100% { transform: skewX(0deg); }
+      50% { transform: skewX(20deg); }
+    }
+    @keyframes spin-slow {
+      100% { transform: rotate(360deg); }
+    }
+    .animate-shake {
+      animation: shakeHero 0.3s ease-in-out;
+    }
+    .animate-breathe {
+      animation: breatheHero 3s ease-in-out infinite;
+      transform-origin: 100px 150px;
+    }
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    .animate-wind {
+      animation: wind 2s ease-in-out infinite;
+    }
+    .animate-spin-slow {
+      animation: spin-slow 15s linear infinite;
+    }
+  </style>
+</head>
+<body class="bg-indigo-50 min-h-screen flex flex-col justify-between">
+
+  <!-- HLAVNÍ KONTEJNER -->
+  <div id="app" class="w-full max-w-6xl mx-auto p-2 sm:p-4 my-auto">
+    <!-- Dynamicky se měnící obsah přes JavaScript -->
+  </div>
+
+  <script>
+    // --- DATABÁZE ÚROVNÍ TEXTU ---
+    const LEVELS = {
+      1: {
+        id: 1, name: 'Úroveň 1: Začátečník 🐣',
+        description: 'Lehká slova bez háčků a základní čísla.',
+        words: ['pes', 'les', 'oko', 'nos', 'mrak', 'vlak', 'kolo', 'sova', 'auto', 'hrad', 'strom', 'kniha', 'okno', 'voda', 'zima', 'ruka', 'noha', 'ucho', 'zub', 'vlas', 'den', 'noc', 'rak', 'sen', 'syn', 'dar', 'rok', 'let', 'plot', 'byt', 'luk', 'had', 'led', 'med', 'sud', 'lev', 'most', 'kos', 'krk', 'vlk', 'slon', '1', '2', '5', '10', '20', '100']
+      },
+      2: {
+        id: 2, name: 'Úroveň 2: Průzkumník 🦊',
+        description: 'Slova s háčky (bez ť, ď, ň) a větší čísla.',
+        words: ['žába', 'řeka', 'žebřík', 'nůžky', 'hřebík', 'počítač', 'čokoláda', 'pomeranč', 'růže', 'nůž', 'lžíce', 'talíř', 'hrneček', 'večeře', 'město', 'kříž', 'kůže', 'slunce', 'vítr', 'mýdlo', 'sýr', 'kráva', 'pták', 'myš', 'léto', 'březen', 'září', 'říjen', 'škola', 'školka', 'žák', 'učitel', '15', '42', '1000', '2024']
+      },
+      3: {
+        id: 3, name: 'Úroveň 3: Šikula 🐯',
+        description: 'Jednoduchá spojení 2 až 3 slov a čísla.',
+        words: ['Pes štěká', 'Slunce zapadá', 'Kočka pije', 'Táta čte', 'Dnes je úterý', 'Mám velký hlad', 'Jdeme ven', 'Auto jede rychle', 'Venku silně prší', 'Zelená tráva', 'Vysoký strom', 'Malý ptáček', 'Bílý mrak', 'Červené jablko', 'Rychlý vlak', 'Hluboká řeka', 'Studená voda', 'Teplý čaj', 'Píšu úkol', 'Čtu si knihu', 'Máma vaří', 'Bratr spí', 'Sestra kreslí', 'Děda pracuje', 'Babička peče', 'Je mi 10 let', 'Kup 5 rohlíků', 'Mám 2 psy']
+      },
+      4: {
+        id: 4, name: 'Úroveň 4: Spisovatel ✍️',
+        description: 'Věty s interpunkcí a těžší česká gramatika.',
+        words: ['Ahoj, jak se máš?', 'Dnes prší, viď?', 'Pozor, jede auto!', 'Jablka, hrušky a švestky.', 'Kde jsi byl včera?', 'Uf, to bylo těsné!', 'Koupíš sýr a chléb?', 'Viděl jsi tu labuť?', 'Můj kůň běží rychle.', 'Náměstí je plné lidí.', 'Dáš si se mnou oběd?', 'Hlemýžď se plazí.', 'Kde je to malé štěně?', 'Paměť mi dobře slouží.', 'Mám novou a velkou loď.', 'Máš chuť na čokoládu?', 'Dej mi to nářadí!', 'Zítra bude jistě pršet.', 'Nezapomeň na svůj úkol!', 'Půjdeme dnes do kina?', 'Venku už je velká tma.', 'Dobrou noc, mami!', 'Tati, podívej se!', 'To je překvapení!', 'Koupil jsi 10 jablek?', 'Dnes je 28. října.', 'Vlak jede v 15 hodin.', 'Vezmi si to s sebou!', 'Pojď se mnou ven.', 'Chtěl jsi mi něco říct?', 'Zpíval jsi moc hezky.', 'Děti si hrály na hřišti.', 'Výjimečně se mi to líbí.', 'Slyšel jsi tu novinu?']
+      },
+      5: {
+        id: 5, name: 'Úroveň 5: Hacker 💻',
+        description: 'Skupiny 4 znaků (písmena a jednoduché znaky).',
+        words: ['a+B-', 'x?Z!', '1@9&', '+A-b', '=1?2', '!.@,', '&*()', 'A@b*', 'X+y-', '1*2(', 'c&D*', 'E!f?', 'g@H+', '3-4=', 'i,J.', 'k?L!', 'm+N-', '5&6*', 'o(P)', 'q=R+', 's?T!', 'u@V&', 'w+X-', 'y*Z(', '7@8&', '9-0=', 'a.B,', 'c!D?', 'e(F)', 'g*H&']
+      },
+      6: {
+        id: 6, name: 'Úroveň 6: Ninja klávesnice 🥷',
+        description: 'Skupiny 6 složitých znaků (často s AltGr).',
+        words: ['#a${}b', '[c]d<e', '>f~g\\', '|h^i€', '§j°k#', '$l{m}', '[n<o>', '~p\\q|', '^r€s§', '°t#u$', '{v}w[', ']x<y>', '~z\\A|', '^B€C§', '°D#E$', '{F}G[', ']H<I>', '~J\\K|', '^L€M§', '°N#O$', '#1$2{3', '}4[5]', '<6>7~8', '\\9|0^', '€a§b°', '#X$Y{Z', '}A[B]', '<C>D~E', '\\F|G^', '§1°2#']
+      }
+    };
+
+    const BOSS_TEXTS = [
+      "Rychle napiš tohle slovo, než boss zaútočí!",
+      "Temný drak chrlí oheň, braň se rychle!",
+      "Kouzelník sesílá blesk, odraz ho klávesnicí!",
+      "Pozor na padající meteorit, uhni!",
+      "Tohle je ultimátní zkouška tvé rychlosti."
+    ];
+
+    const HERO_NAMES = {
+      1: 'Rolník', 2: 'Dřevorubec', 3: 'Strážný', 4: 'Šermíř', 5: 'Ninja',
+      6: 'Mág', 7: 'Paladin', 8: 'Drakobijec', 9: 'Kyborg', 10: 'Pán Klávesnice'
+    };
+
+    // --- POMOCNÉ FUNKCE PRO ZKUŠENOSTI (EXP) ---
+    function getExpNeeded(level) {
+      const req = { 
+        1: 10,  // celkem k L2: 10
+        2: 15,  // celkem k L3: 25
+        3: 20,  // celkem k L4: 45
+        4: 25,  // celkem k L5: 70
+        5: 40,  // celkem k L6: 110
+        6: 60,  // celkem k L7: 170
+        7: 90,  // celkem k L8: 260
+        8: 140, // celkem k L9: 400
+        9: 200  // celkem k L10: 600
+      };
+      return req[level] || 9999;
+    }
+
+    function getCumulativeExp(targetLevel) {
+      if (targetLevel === 1) return 0;
+      let total = 0;
+      for (let i = 1; i < targetLevel; i++) {
+        total += getExpNeeded(i);
+      }
+      return total;
+    }
+
+    // --- STATE MANAGEMENT ---
+    let state = {
+      appMode: null, // 'basic' / 'game'
+      gameState: 'mode_select', // mode_select, level_select, playing, game_over, handbook, shop
+      currentLevel: null,
+      currentWord: '',
+      typedText: '',
+      score: 0,
+      skips: 0,
+      correctStrokes: 0,
+      wrongStrokes: 0,
+      startTime: null,
+      elapsedSeconds: 0,
+      canSkip: true,
+      showHint: false,
+      
+      // RPG
+      hp: 100,
+      charLevel: 1,
+      exp: 0,
+      gold: 0,
+      potions: 0,
+      ownedPets: [],
+      activePet: null,
+      
+      // Boss
+      wordsTypedCounter: 0,
+      isBossFight: false,
+      bossTimeLeft: 0,
+      
+      // Anims
+      hitAnim: false,
+      healAnim: false,
+      levelUpAnim: false,
+      
+      soundEnabled: false,
+      recentHistory: []
+    };
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // --- LOCAL STORAGE ---
+    function loadSave() {
+      try {
+        const saved = localStorage.getItem('klavesnicovy_mistr_save_v1');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state.charLevel = parsed.charLevel || 1;
+          state.exp = parsed.exp || 0;
+          state.gold = parsed.gold || 0;
+          state.potions = parsed.potions || 0;
+          state.ownedPets = parsed.ownedPets || [];
+          state.activePet = parsed.activePet || null;
+        }
+      } catch (e) {
+        console.error("Uložení nelze načíst", e);
+      }
+    }
+
+    function saveGame() {
+      try {
+        const data = {
+          charLevel: state.charLevel,
+          exp: state.exp,
+          gold: state.gold,
+          potions: state.potions,
+          ownedPets: state.ownedPets,
+          activePet: state.activePet
+        };
+        localStorage.setItem('klavesnicovy_mistr_save_v1', JSON.stringify(data));
+      } catch (e) {
+        console.error("Uložení selhalo", e);
+      }
+    }
+
+    // --- AUDIO GENERATOR (Web Audio API) ---
+    function playTone(type) {
+      if (!state.soundEnabled) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+
+      if (type === 'hit') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+        gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now); osc.stop(now + 0.1);
+      } else if (type === 'error') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(140, now); osc.frequency.exponentialRampToValueAtTime(90, now + 0.2);
+        gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.start(now); osc.stop(now + 0.2);
+      } else if (type === 'heal') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(550, now); osc.frequency.exponentialRampToValueAtTime(1100, now + 0.3);
+        gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+      } else if (type === 'levelup') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(554, now + 0.15);
+        osc.frequency.setValueAtTime(660, now + 0.3);
+        osc.frequency.setValueAtTime(880, now + 0.45);
+        gain.gain.setValueAtTime(0.04, now); gain.gain.linearRampToValueAtTime(0, now + 0.8);
+        osc.start(now); osc.stop(now + 0.8);
+      } else if (type === 'boss_warn') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, now);
+        osc.frequency.setValueAtTime(130, now + 0.25);
+        gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.6);
+        osc.start(now); osc.stop(now + 0.6);
+      } else if (type === 'buy') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(900, now); osc.frequency.setValueAtTime(1400, now + 0.1);
+        gain.gain.setValueAtTime(0.08, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+      }
+    }
+
+    // --- GAME LOGIC ---
+    function pickWord(levelId) {
+      const words = LEVELS[levelId].words;
+      let avail = words.filter(w => !state.recentHistory.includes(w));
+      if (avail.length === 0) avail = words;
+      return avail[Math.floor(Math.random() * avail.length)];
+    }
+
+    function checkLevelUp() {
+      const needed = getExpNeeded(state.charLevel);
+      if (state.exp >= needed && state.charLevel < 10) {
+        state.charLevel++;
+        state.exp -= needed;
+        state.levelUpAnim = true;
+        playTone('levelup');
+        setTimeout(() => {
+          state.levelUpAnim = false;
+          render();
+        }, 3000);
+      }
+    }
+
+    function handleStroke(e) {
+      if (state.gameState !== 'playing') return;
+      const inputVal = e.target.value;
+
+      if (!state.startTime) {
+        state.startTime = Date.now();
+      }
+
+      if (inputVal.length > state.typedText.length) {
+        const expectedPrefix = state.currentWord.substring(0, inputVal.length);
+        const isCorrect = inputVal === expectedPrefix;
+
+        if (isCorrect) {
+          state.correctStrokes++;
+          playTone('hit');
+        } else {
+          state.wrongStrokes++;
+          playTone('error');
+          if (state.appMode === 'game') {
+            state.hp -= 5;
+            state.hitAnim = true;
+            setTimeout(() => { state.hitAnim = false; render(); }, 300);
+            if (state.hp <= 0) {
+              state.gameState = 'game_over';
+              saveGame();
+              render();
+              return;
+            }
+          }
+        }
+      }
+
+      state.typedText = inputVal;
+
+      if (inputVal === state.currentWord) {
+        // Slovo/úsek dokončen
+        setTimeout(() => {
+          state.score++;
+          state.canSkip = true;
+
+          if (state.appMode === 'game') {
+            if (state.isBossFight) {
+              state.isBossFight = false;
+              state.hp = Math.min(100, state.hp + 20);
+              state.exp += 20;
+              state.gold += 50;
+              playTone('levelup');
+            } else {
+              let bGold = state.activePet === 'dog' ? 2 : 0;
+              let bExp = state.activePet === 'dragon' ? 1 : 0;
+              let bHeal = state.activePet === 'cat' ? 3 : 1;
+
+              state.hp = Math.min(100, state.hp + bHeal);
+              state.exp += LEVELS[state.currentLevel].id + bExp;
+              state.gold += state.currentWord.length + bGold;
+              state.healAnim = true;
+              playTone('heal');
+              setTimeout(() => { state.healAnim = false; render(); }, 400);
+            }
+
+            checkLevelUp();
+            state.wordsTypedCounter++;
+            if (state.wordsTypedCounter % 15 === 0 && !state.isBossFight) {
+              // Spuštění Bosse
+              state.isBossFight = true;
+              playTone('boss_warn');
+              state.bossTimeLeft = 15;
+              state.typedText = '';
+              state.currentWord = BOSS_TEXTS[Math.floor(Math.random() * BOSS_TEXTS.length)];
+              saveGame();
+              render();
+              return;
+            }
+          }
+
+          state.typedText = '';
+          const nextW = pickWord(state.currentLevel);
+          state.currentWord = nextW;
+          state.recentHistory.push(nextW);
+          if (state.recentHistory.length > 10) state.recentHistory.shift();
+          saveGame();
+          render();
+        }, 200);
+      }
+      render();
+    }
+
+    // --- TIMERS ---
+    setInterval(() => {
+      if (state.gameState === 'playing' && state.startTime && !state.isBossFight) {
+        state.elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
+        render();
+      }
+    }, 1000);
+
+    setInterval(() => {
+      if (state.gameState === 'playing' && state.isBossFight && state.bossTimeLeft > 0) {
+        state.bossTimeLeft--;
+        if (state.bossTimeLeft === 0) {
+          playTone('error');
+          state.hp -= 30;
+          state.hitAnim = true;
+          setTimeout(() => { state.hitAnim = false; render(); }, 500);
+          state.isBossFight = false;
+          state.typedText = '';
+          const nextW = pickWord(state.currentLevel);
+          state.currentWord = nextW;
+          if (state.hp <= 0) {
+            state.gameState = 'game_over';
+          }
+        }
+        render();
+      }
+    }, 1000);
+
+    // --- SVG AVATAR RENDERING ENGINE ---
+    function renderAvatar(level, isSmall = false) {
+      const hit = state.hitAnim || (state.isBossFight && !isSmall);
+      const heal = state.healAnim && !isSmall;
+      const lvlUp = state.levelUpAnim && !isSmall;
+      
+      let filterClass = "";
+      if (hit) filterClass = "drop-shadow-[0_0_30px_rgba(239,68,68,1)]";
+      else if (heal) filterClass = "drop-shadow-[0_0_30px_rgba(34,197,94,1)]";
+      else if (lvlUp) filterClass = "drop-shadow-[0_0_50px_rgba(234,179,8,1)]";
+
+      const szClass = isSmall ? "w-28 h-28 sm:w-36 sm:h-36 border-4" : "w-48 h-48 md:w-64 md:h-64 border-8";
+      const svgScale = isSmall ? "scale(0.85) translate(15, 10)" : "scale(1)";
+
+      // Dynamické detaily vybavení hrdiny podle levelu
+      let weaponSVG = "";
+      let accessorySVG = "";
+      let armorSVG = `
+        <path d="M 75 90 L 125 90 L 135 160 Q 100 175 65 160 Z" fill="#b08968" />
+        <path d="M 75 90 L 125 90 L 128 110 Q 100 120 72 110 Z" fill="#ddb892" />
+        <rect x="80" y="135" width="18" height="18" fill="#7f5539" transform="rotate(-5, 87, 142)" />
+        <path d="M 82 135 L 96 152 M 96 135 L 82 152" stroke="#000" strokeWidth="1" opacity="0.6"/>
+        <path d="M 70 125 Q 100 135 130 125 L 132 135 Q 100 145 68 135 Z" fill="#7f4f24" />
+        <rect x="85" y="160" width="12" height="25" fill="#7f5539" />
+        <rect x="103" y="160" width="12" height="25" fill="#7f5539" />
+        <path d="M 78 185 L 97 185 Q 97 175 87 175 Z" fill="#432818" />
+        <path d="M 103 185 L 122 185 Q 122 175 112 175 Z" fill="#432818" />
+      `;
+      let faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" strokeWidth="3" fill="none" strokeLinecap="round" />`;
+
+      if (level >= 2) { // DŘEVORUBEC
+        armorSVG = `
+          <path d="M 75 140 L 125 140 L 125 185 L 105 185 L 105 155 L 95 155 L 95 185 L 75 185 Z" fill="#1d3557" />
+          <path d="M 75 90 L 125 90 L 132 145 L 68 145 Z" fill="url(#plaid)" />
+          <rect x="83" y="90" width="8" height="55" fill="#582f0e" />
+          <rect x="109" y="90" width="8" height="55" fill="#582f0e" />
+          <rect x="81" y="133" width="12" height="8" fill="url(#gradGold)" rx="1"/>
+          <rect x="107" y="133" width="12" height="8" fill="url(#gradGold)" rx="1"/>
+          <path d="M 70 185 L 100 185 L 95 170 L 75 170 Z" fill="#212529" />
+          <path d="M 100 185 L 130 185 L 125 170 L 105 170 Z" fill="#212529" />
+        `;
+        faceFeatureSVG = `
+          <path d="M 78 58 L 95 63 M 122 58 L 105 63" stroke="#3e2723" strokeWidth="5" strokeLinecap="round" />
+          <path d="M 72 75 Q 100 130 130 75 Q 115 90 100 90 Q 85 90 72 75 Z" fill="#4e342e" />
+        `;
+        accessorySVG = `<path d="M 72 35 Q 100 10 128 35 Q 100 48 72 35 Z" fill="#2a9d8f" />`;
+        weaponSVG = `
+          <rect x="133" y="40" width="12" height="120" fill="url(#gradWood)" rx="5" />
+          <path d="M 120 55 L 158 55 L 175 80 L 175 105 L 158 130 L 120 130 Z" fill="url(#gradSteel)" />
+          <circle cx="139" cy="120" r="9" fill="url(#skinGrad)" />
+        `;
+      }
+      if (level >= 3) { // STRÁŽNÝ
+        armorSVG = `
+          <path d="M 73 90 L 127 90 L 130 155 L 70 155 Z" fill="url(#chainmail)" />
+          <path d="M 78 90 L 122 90 L 118 135 Q 100 148 82 135 Z" fill="url(#gradSteel)" stroke="#6c757d" strokeWidth="3" />
+          <rect x="73" y="125" width="54" height="14" fill="#111" />
+        `;
+        accessorySVG = `
+          <path d="M 66 65 Q 100 15 134 65 L 134 82 Q 100 95 66 82 Z" fill="url(#gradSteel)" />
+          <path d="M 75 65 L 125 65 L 115 82 L 85 82 Z" fill="#212529" />
+        `;
+        weaponSVG = `
+          <rect x="140" y="10" width="10" height="170" fill="#212529" rx="3" />
+          <path d="M 136 10 L 156 10 L 145 -10 Z" fill="url(#gradSteel)" />
+          <circle cx="145" cy="120" r="9" fill="url(#gradSteel)" />
+        `;
+      }
+      if (level >= 4) { // ŠERMÍŘ (Rytíř)
+        armorSVG = `
+          <path d="M 68 90 L 132 90 L 138 145 L 100 168 L 62 145 Z" fill="url(#gradSteel)" />
+          <path d="M 80 90 L 120 90 L 115 135 L 100 152 L 85 135 Z" fill="url(#gradGold)" />
+        `;
+        accessorySVG = `
+          <path d="M 65 60 Q 100 5 135 60 L 128 85 L 72 85 Z" fill="url(#gradSteel)" />
+          <path d="M 100 10 Q 125 -15 150 15 Q 135 35 100 15 Z" fill="url(#capeGradRed)" />
+        `;
+        weaponSVG = `
+          <rect x="135" y="65" width="12" height="90" fill="url(#gradBlade)" />
+          <path d="M 135 65 L 141 45 L 147 65 Z" fill="url(#gradBlade)" />
+          <rect x="120" y="155" width="42" height="10" fill="url(#gradGold)" rx="3" />
+          <circle cx="141" cy="160" r="10" fill="url(#gradSteel)" />
+        `;
+      }
+      if (level >= 5) { // NINJA
+        armorSVG = `
+          <path d="M 72 90 L 128 90 L 122 165 L 78 165 Z" fill="#0b090a" />
+          <rect x="72" y="132" width="56" height="14" fill="#d90429" />
+        `;
+        accessorySVG = `<path d="M 75 50 Q 20 60 10 110 Q 35 85 75 65 Z" fill="#d90429" />`;
+        weaponSVG = `
+          <path d="M 135 135 Q 165 85 175 30 L 167 25 Q 152 80 130 125 Z" fill="url(#gradBlade)" />
+          <circle cx="132" cy="130" r="8" fill="url(#skinGrad)" />
+        `;
+      }
+      if (level >= 6) { // MÁG
+        armorSVG = `
+          <path d="M 70 90 L 130 90 L 150 190 L 50 190 Z" fill="url(#robeGradBlue)" />
+          <rect x="75" y="130" width="50" height="12" fill="url(#gradGold)" />
+        `;
+        accessorySVG = `
+          <ellipse cx="100" cy="55" rx="45" ry="12" fill="#10002b" />
+          <path d="M 75 55 Q 85 0 130 -10 Q 110 20 125 55 Z" fill="url(#robeGradBlue)" />
+        `;
+        weaponSVG = `
+          <rect x="144" y="50" width="10" height="140" fill="url(#gradWood)" rx="5" />
+          <polygon points="149,0 164,25 149,50 134,25" fill="#00f5d4" />
+          <circle cx="149" cy="125" r="8" fill="url(#skinGrad)" />
+        `;
+      }
+      if (level >= 7) { // PALADIN
+        armorSVG = `
+          <path d="M 62 90 L 138 90 L 132 155 Q 100 175 68 155 Z" fill="url(#gradSteel)" />
+          <path d="M 75 90 L 125 90 L 120 145 Q 100 160 80 145 Z" fill="#ffffff" />
+        `;
+        accessorySVG = `
+          <path d="M 66 60 Q 100 5 134 60 L 128 80 L 72 80 Z" fill="url(#gradSteel)" />
+          <path d="M 72 60 Q 40 20 10 30 Q 40 65 68 75 Z" fill="url(#gradGold)" />
+        `;
+        weaponSVG = `
+          <rect x="136" y="50" width="10" height="100" fill="#212529" />
+          <path d="M 120 25 L 162 25 L 155 60 L 127 60 Z" fill="url(#gradGold)" />
+          <circle cx="141" cy="140" r="11" fill="url(#gradSteel)" />
+        `;
+      }
+      if (level >= 8) { // DRAKOBIJEC
+        armorSVG = `
+          <path d="M 62 90 L 138 90 L 132 155 Q 100 175 68 155 Z" fill="url(#dragonScales)" />
+        `;
+        accessorySVG = `
+          <path d="M 66 65 Q 100 15 134 65 L 128 82 L 72 82 Z" fill="#0b090a" />
+          <path d="M 72 50 Q 40 0 20 5 Q 45 35 66 65 Z" fill="#e9ecef" />
+        `;
+        weaponSVG = `
+          <path d="M 128 75 Q 140 0 152 75 L 146 155 L 134 155 Z" fill="url(#gradSteel)" />
+          <circle cx="140" cy="140" r="11" fill="#0b090a" />
+        `;
+      }
+      if (level >= 9) { // KYBORG
+        armorSVG = `
+          <path d="M 62 90 L 138 90 L 132 155 L 68 155 Z" fill="url(#cyberCircuit)" />
+        `;
+        weaponSVG = `
+          <rect x="135" y="0" width="10" height="135" fill="#00ffff" />
+          <rect x="131" y="135" width="18" height="35" fill="url(#gradSteel)" rx="3" />
+        `;
+      }
+      if (level >= 10) { // PÁN KLÁVESNICE
+        armorSVG = `
+          <path d="M 65 90 L 135 90 L 140 185 L 60 185 Z" fill="#ffffff" />
+          <path d="M 75 90 L 125 90 L 100 135 Z" fill="url(#gradGold)" opacity="0.8" />
+        `;
+        accessorySVG = `
+          <ellipse cx="100" cy="15" rx="45" ry="12" fill="none" stroke="url(#gradGold)" strokeWidth="6" />
+        `;
+        weaponSVG = `
+          <rect x="135" y="35" width="12" height="120" fill="url(#gradGold)" rx="6" />
+          <circle cx="141" cy="140" r="11" fill="#ffffff" />
+        `;
+      }
+
+      // Animace otřesu při zásahu / dýchání
+      let animClass = hit ? "animate-shake" : "animate-breathe";
+
+      let petMarkup = "";
+      if (state.activePet && !isSmall) {
+        petMarkup = renderPetSVG(state.activePet);
+      }
+
+      return `
+        <div class="${szClass} rounded-full bg-gradient-to-b from-blue-100 to-indigo-300 overflow-hidden flex items-end justify-center transition-all duration-300 shadow-[inset_0_0_30px_rgba(0,0,0,0.2)] relative ${filterClass}">
+          <svg viewBox="0 0 200 200" class="w-full h-full relative ${isSmall ? 'top-2' : 'top-6'} ${svgScale}">
+            ${svgDefs}
+            <g class="${animClass}">
+              <!-- Nohy -->
+              <rect x="85" y="150" width="12" height="35" fill="#343a40" />
+              <rect x="103" y="150" width="12" height="35" fill="#343a40" />
+              <!-- Tělo -->
+              ${armorSVG}
+              <!-- Hlava -->
+              <circle cx="100" cy="70" r="28" fill="url(#skinGrad)" />
+              <!-- Oči -->
+              ${baseEyes}
+              <!-- Výraz face -->
+              ${faceFeatureSVG}
+              <!-- Pokrývka hlavy -->
+              ${accessorySVG}
+            </g>
+            <!-- Zbraň -->
+            ${weaponSVG}
+            <!-- Zvířátko -->
+            ${petMarkup}
+          </svg>
+        </div>
+      `;
+    }
+
+    function renderPetSVG(petId) {
+      if (petId === 'dog') {
+        return `
+          <g transform="translate(130, 150) scale(0.6)">
+            <path d="M 0 30 Q -10 30 -10 10 Q 0 -10 20 -10 Q 40 -10 50 10 Q 60 30 50 30 Z" fill="#8B4513" />
+            <circle cx="10" cy="5" r="3" fill="#000" />
+            <circle cx="30" cy="5" r="3" fill="#000" />
+            <ellipse cx="20" cy="15" rx="6" ry="4" fill="#000" />
+          </g>
+        `;
+      }
+      if (petId === 'cat') {
+        return `
+          <g transform="translate(135, 145) scale(0.5)">
+            <path d="M 0 30 Q -10 30 -10 10 Q 0 -10 20 -10 Q 40 -10 50 10 Q 60 30 50 30 Z" fill="#2F4F4F" />
+            <polygon points="-10,0 -20,-20 0,-10" fill="#2F4F4F" />
+            <polygon points="50,0 60,-20 40,-10" fill="#2F4F4F" />
+            <circle cx="10" cy="5" r="4" fill="#FFD700" />
+            <circle cx="30" cy="5" r="4" fill="#FFD700" />
+          </g>
+        `;
+      }
+      if (petId === 'owl') {
+        return `
+          <g transform="translate(140, 60) scale(0.5)" class="animate-float">
+            <ellipse cx="20" cy="20" rx="25" ry="30" fill="#A9A9A9" />
+            <circle cx="5" cy="10" r="10" fill="#FFF" />
+            <circle cx="35" cy="10" r="10" fill="#FFF" />
+          </g>
+        `;
+      }
+      if (petId === 'dragon') {
+        return `
+          <g transform="translate(130, 40) scale(0.6)" class="animate-float">
+            <path d="M 10 30 Q -10 10 10 -10 Q 30 -30 50 -10 Q 70 10 50 30 Z" fill="#8B0000" />
+            <circle cx="20" cy="0" r="3" fill="#FFD700" />
+            <circle cx="40" cy="0" r="3" fill="#FFD700" />
+          </g>
+        `;
+      }
+      return "";
+    }
+
+    // --- RENDER SCREEN ENGINE ---
+    function render() {
+      const root = document.getElementById('app');
+      root.innerHTML = '';
+      
+      const expNeededForNextLevel = getExpNeeded(state.charLevel);
+
+      if (state.gameState === 'mode_select') {
+        root.innerHTML = `
+          <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-6xl md:text-7xl font-extrabold text-indigo-600 mb-6 tracking-tight drop-shadow-sm">Klávesnicový Mistr</h1>
+            <p class="text-2xl text-gray-600 mb-12">Vyber si, jak chceš dnes trénovat!</p>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-12">
+              <button onclick="state.appMode='basic'; state.gameState='level_select'; render();" class="bg-white p-10 rounded-3xl shadow-xl hover:shadow-2xl border-4 border-blue-200 hover:border-blue-500 transition-all transform hover:-translate-y-2 text-left relative overflow-hidden group">
+                <div class="text-7xl mb-6">🏫</div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2 group-hover:text-blue-600">Tréninkový mód</h2>
+                <p class="text-gray-500 text-lg">Bez stresu a životů. Sleduj svou rychlost a přesnost v detailních statistikách!</p>
+              </button>
+
+              <button onclick="state.appMode='game'; state.gameState='level_select'; render();" class="bg-white p-10 rounded-3xl shadow-xl hover:shadow-2xl border-4 border-amber-200 hover:border-amber-500 transition-all transform hover:-translate-y-2 text-left relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 bg-amber-400 text-white font-black py-1 px-8 rounded-bl-3xl shadow-md rotate-12">HRA!</div>
+                <div class="text-7xl mb-6">⚔️</div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2 group-hover:text-amber-600">Dobrodružství</h2>
+                <p class="text-gray-500 text-lg">Máš 100 životů. Sleduj, jak se tvůj hrdina vyvíjí až do epického <strong>Levelu 10</strong>!</p>
+              </button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-6">
+              <button onclick="state.gameState='handbook'; render();" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-black py-4 px-8 rounded-full border-4 border-indigo-300 transition-all shadow-md hover:scale-105 text-xl tracking-wide flex-grow max-w-sm mx-auto">
+                📖 Příručka Hrdinů
+              </button>
+              <button onclick="state.gameState='shop'; render();" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-black py-4 px-8 rounded-full border-4 border-amber-300 transition-all shadow-md hover:scale-105 text-xl tracking-wide flex-grow max-w-sm mx-auto">
+                🛒 Otevřít Obchod
+              </button>
+            </div>
+            
+            <button onclick="toggleSound();" class="mt-8 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-xl text-sm">
+              ${state.soundEnabled ? '🔊 Zvuk zapnutý' : '🔇 Zvuk vypnutý'}
+            </button>
+          </div>
+        `;
+      } 
+      
+      else if (state.gameState === 'level_select') {
+        let cards = "";
+        Object.values(LEVELS).forEach(lvl => {
+          cards += `
+            <button onclick="startGame(${lvl.id});" class="flex flex-col items-center p-6 bg-gray-50 hover:bg-indigo-100 border-2 border-gray-200 hover:border-indigo-400 rounded-2xl transition-all shadow-sm hover:shadow-lg text-center transform hover:-translate-y-1 relative overflow-hidden">
+              ${state.appMode === 'game' ? `<div class="absolute top-0 right-0 bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-bl-xl shadow-sm">${lvl.id} EXP</div>` : ''}
+              <span class="text-2xl font-bold text-gray-800 mb-2 mt-4">${lvl.name}</span>
+              <span class="text-sm text-gray-600 leading-tight">${lvl.description}</span>
+            </button>
+          `;
+        });
+
+        root.innerHTML = `
+          <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl p-8 text-center border-4 border-indigo-200 relative">
+            <button onclick="state.gameState='mode_select'; render();" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-600 mb-4 tracking-tight mt-12 md:mt-0">
+              ${state.appMode === 'game' ? '🌍 Mapa Dobrodružství' : '📚 Tréninkové Lekce'}
+            </h1>
+            <p class="text-xl text-gray-500 mb-10">Vyber si obtížnost textu k psaní.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              ${cards}
+            </div>
+          </div>
+        `;
+      }
+
+      else if (state.gameState === 'handbook') {
+        let cards = "";
+        for (let i = 1; i <= 10; i++) {
+          cards += `
+            <div class="flex flex-col items-center bg-gray-50 p-6 rounded-3xl border-4 border-gray-200 hover:border-indigo-400 transition-all shadow-md">
+              ${renderAvatar(i, true)}
+              <div class="mt-6 bg-amber-100 text-amber-900 px-5 py-2 rounded-full font-black text-base border-2 border-amber-300 shadow-sm w-full text-center">
+                ${i === 1 ? 'STARTOVNÍ' : `CELKEM: ${getCumulativeExp(i)} EXP`}
+              </div>
+            </div>
+          `;
+        }
+
+        root.innerHTML = `
+          <div class="max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl p-8 text-center border-4 border-indigo-200 relative">
+            <button onclick="state.gameState='mode_select'; render();" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-600 mb-4 tracking-tight mt-12 md:mt-0">📖 Příručka Hrdinů</h1>
+            <p class="text-xl text-gray-500 mb-10">Zjisti, jaké formy hrdiny na tebe v Dobrodružství čekají!</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+              ${cards}
+            </div>
+          </div>
+        `;
+      }
+
+      else if (state.gameState === 'shop') {
+        const dogBought = state.ownedPets.includes('dog');
+        const catBought = state.ownedPets.includes('cat');
+        const owlBought = state.ownedPets.includes('owl');
+        const dragonBought = state.ownedPets.includes('dragon');
+
+        root.innerHTML = `
+          <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl p-8 border-4 border-indigo-200 relative">
+            <button onclick="state.gameState='mode_select'; render();" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
+            <div class="text-center mb-10">
+              <h1 class="text-5xl font-extrabold text-indigo-600 mb-4">🛒 Tajemný Obchod</h1>
+              <div class="bg-amber-100 text-amber-900 inline-block px-8 py-3 rounded-full font-black text-2xl border-4 border-amber-300 shadow-sm">
+                Tvé zlaťáky: ${state.gold} 🪙
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+              <!-- Potion -->
+              <div class="bg-red-50 p-6 rounded-3xl border-4 border-red-200 flex flex-col items-center">
+                <div class="text-6xl mb-4">🧪</div>
+                <h2 class="text-2xl font-bold text-red-800 mb-2">Lektvar Zdraví</h2>
+                <p class="text-red-600 text-center mb-4">Doplní ti 50 HP. Můžeš ho vypít v boji.</p>
+                <p class="font-bold text-lg mb-6">Máš u sebe: ${state.potions}x</p>
+                <button onclick="buyShopItem('potion', 50);" class="px-8 py-4 rounded-full font-black text-xl shadow-md transition-all ${state.gold >= 50 ? 'bg-amber-400 hover:bg-amber-500 text-white transform hover:scale-105' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}">
+                  Koupit za 50 🪙
+                </button>
+              </div>
+
+              <!-- Pets -->
+              <div class="bg-green-50 p-6 rounded-3xl border-4 border-green-200 flex flex-col items-center">
+                <h2 class="text-2xl font-bold text-green-800 mb-4">Magická Zvířátka</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                  <!-- Dog -->
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center">
+                    <span class="text-4xl">🐕</span>
+                    <span class="font-bold">Pes</span>
+                    <span class="text-xs text-green-700 text-center mb-3">+2 zlaťáky</span>
+                    ${dogBought ? `<button onclick="equipPet('dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dog' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dog' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 200, 'dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">200 🪙</button>`}
+                  </div>
+                  <!-- Cat -->
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center">
+                    <span class="text-4xl">🐈</span>
+                    <span class="font-bold">Kočka</span>
+                    <span class="text-xs text-green-700 text-center mb-3">+3 heal HP</span>
+                    ${catBought ? `<button onclick="equipPet('cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'cat' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'cat' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 300, 'cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">300 🪙</button>`}
+                  </div>
+                  <!-- Owl -->
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center">
+                    <span class="text-4xl">🦉</span>
+                    <span class="font-bold">Sova</span>
+                    <span class="text-xs text-green-700 text-center mb-3">Chytrý pohled</span>
+                    ${owlBought ? `<button onclick="equipPet('owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'owl' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'owl' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 400, 'owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">400 🪙</button>`}
+                  </div>
+                  <!-- Dragon -->
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center">
+                    <span class="text-4xl">🐉</span>
+                    <span class="font-bold">Dráček</span>
+                    <span class="text-xs text-green-700 text-center mb-3">+1 EXP</span>
+                    ${dragonBought ? `<button onclick="equipPet('dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dragon' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dragon' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 1000, 'dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">1000 🪙</button>`}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      else if (state.gameState === 'playing') {
+        const expectedPrefix = state.currentWord.substring(0, state.typedText.length);
+        const wrongText = state.typedText !== expectedPrefix;
+
+        // Vykreslení písmen
+        let lettersHtml = "";
+        state.currentWord.split('').forEach((char, index) => {
+          let col = "text-gray-700";
+          let bg = "";
+          if (index < state.typedText.length) {
+            if (state.typedText[index] === char) {
+              col = "text-green-500 font-bold";
+            } else {
+              col = "text-red-500 font-bold";
+              bg = "bg-red-100 rounded-sm";
+            }
+          }
+          if (char === ' ') {
+            lettersHtml += `<span class="inline-block w-4 mx-1 ${bg}">&nbsp;</span>`;
+          } else {
+            lettersHtml += `<span class="inline-block ${col} ${bg}">${char}</span>`;
+          }
+        });
+
+        // Nápověda klávesnice
+        let hintHtml = "";
+        if (state.showHint && hintData) {
+          let keysMarkup = "";
+          hintData.forEach((combo, comboIdx) => {
+            if (comboIdx > 0) keysMarkup += `<span class="text-gray-400 font-black mx-4 text-xl">NEBO</span>`;
+            combo.forEach((key, keyIdx) => {
+              if (keyIdx > 0 && key !== 'poté') keysMarkup += `<span class="text-blue-400 font-black text-3xl">+</span>`;
+              if (key === 'poté') {
+                keysMarkup += `<span class="text-gray-500 font-black mx-3 uppercase tracking-widest text-lg">potom</span>`;
+              } else {
+                keysMarkup += `<kbd class="px-5 py-3 bg-white border-2 border-b-8 border-gray-300 rounded-2xl font-black text-gray-800 text-2xl shadow-sm">${key}</kbd>`;
+              }
+            });
+          });
+
+          hintHtml = `
+            <div class="mt-10 max-w-3xl mx-auto border-4 rounded-3xl p-8 text-left shadow-inner ${state.isBossFight ? 'bg-red-50 border-red-300' : 'bg-blue-50 border-blue-200'}">
+              ${wrongText ? `<div class="text-red-600 font-black mb-4 text-center text-xl">⚠️ Máš tam překlep! Smaž chybu (Backspace) a zkus to znovu.</div>` : ''}
+              <div class="text-2xl text-gray-700 text-center mb-6">
+                Pro napsání znaku <strong class="text-4xl bg-white px-4 py-2 rounded-xl border-4 mx-3 shadow-sm ${state.isBossFight ? 'text-red-600 border-red-300' : 'text-blue-600 border-blue-300'}">${expectedChar === ' ' ? 'MEZERA' : expectedChar}</strong> zmáčkni:
+              </div>
+              <div class="flex flex-col gap-6 items-center justify-center">${keysMarkup}</div>
+            </div>
+          `;
+        }
+
+        root.innerHTML = `
+          <div class="w-full">
+            ${state.appMode === 'game' ? `
+              <!-- RPG PANEL -->
+              <div class="${state.isBossFight ? 'bg-red-900 border-red-500 animate-pulse' : 'bg-white border-indigo-200'} rounded-3xl shadow-xl border-4 mb-6 p-6 flex flex-col md:flex-row items-center justify-around gap-8 transition-colors">
+                <div class="relative">
+                  ${state.isBossFight ? `<div class="absolute -top-10 text-white font-black text-3xl animate-pulse text-center w-full z-10">BOSS ÚTOČÍ!</div>` : ''}
+                  ${renderAvatar(state.charLevel)}
+                </div>
+                <div class="flex-grow max-w-lg w-full flex flex-col gap-6">
+                  <!-- HP -->
+                  <div>
+                    <div class="flex justify-between font-black mb-1">
+                      <span class="text-red-700">❤️ Životy</span>
+                      <span class="text-red-600">${state.hp} / 100</span>
+                    </div>
+                    <div class="h-6 bg-red-100 rounded-full border-2 border-red-200 overflow-hidden shadow-inner">
+                      <div class="bg-red-500 h-full transition-all" style="width: ${state.hp}%"></div>
+                    </div>
+                  </div>
+                  <!-- EXP -->
+                  <div class="flex items-center gap-4">
+                    <div class="flex-grow">
+                      <div class="flex justify-between font-black mb-1">
+                        <span class="text-blue-700">⭐ Zkušenosti</span>
+                        <span>${state.charLevel >= 10 ? 'MAX LEVEL' : `${state.exp} / ${expNeededForNextLevel}`}</span>
+                      </div>
+                      <div class="h-6 bg-blue-100 rounded-full border-2 border-blue-200 overflow-hidden shadow-inner">
+                        <div class="bg-blue-500 h-full transition-all" style="width: ${state.charLevel >= 10 ? 100 : (state.exp / expNeededForNextLevel) * 100}%"></div>
+                      </div>
+                    </div>
+                    <button onclick="drinkPotion();" ${state.potions <= 0 || state.hp >= 100 ? 'disabled' : ''} class="p-3 bg-red-100 hover:bg-red-200 border-2 border-red-300 rounded-xl transition-all disabled:opacity-40">
+                      🧪 <span class="font-bold text-sm">${state.potions}x</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- STATISTIKY -->
+            <div class="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-3xl border-2 border-indigo-100 gap-4 mb-6">
+              <div class="flex gap-4">
+                <button onclick="state.gameState='level_select'; state.startTime=null; render();" class="bg-gray-100 font-bold px-4 py-2 hover:bg-gray-200 rounded-xl">← Odejít</button>
+                <button onclick="toggleSound();" class="bg-gray-100 font-bold px-4 py-2 hover:bg-gray-200 rounded-xl">${state.soundEnabled ? '🔊' : '🔇'}</button>
+              </div>
+              <div class="flex flex-wrap gap-4 justify-center text-lg font-bold">
+                ${state.appMode === 'game' ? `<div class="bg-amber-100 px-4 py-1 rounded-xl">🪙 ${state.gold}</div>` : ''}
+                <div class="bg-green-100 px-4 py-1 rounded-xl">✓ ${state.score}</div>
+                <div class="bg-red-100 px-4 py-1 rounded-xl">❌ ${state.wrongStrokes}</div>
+                <div class="bg-blue-100 px-4 py-1 rounded-xl">🎯 ${accuracy} %</div>
+                <div class="bg-indigo-100 px-4 py-1 rounded-xl">⚡ ${currentCpm} CPM</div>
+                ${state.isBossFight ? `<div class="bg-white text-red-600 px-4 py-1 rounded-xl border-2 border-red-600 animate-pulse font-black">⏳ ${state.bossTimeLeft}s</div>` : ''}
+              </div>
+            </div>
+
+            <!-- HRACÍ PLOCHA -->
+            <div class="${state.isBossFight ? 'bg-red-50 border-red-400' : 'bg-white'} border-4 rounded-3xl p-8 text-center relative">
+              <button onclick="state.showHint=!state.showHint; render();" class="absolute top-4 right-4 bg-blue-100 hover:bg-blue-200 font-bold px-4 py-2 rounded-full text-blue-700">💡 Pomoc</button>
+              
+              <div class="text-gray-400 font-bold uppercase tracking-widest mb-4">Napiš přesně tento text:</div>
+              <div class="text-4xl sm:text-5xl md:text-6xl font-black mb-10 tracking-wide break-all">${lettersHtml}</div>
+
+              <div class="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
+                <input id="wordInput" type="text" oninput="handleStroke(event)" value="${state.typedText}" class="flex-grow text-center text-3xl font-bold p-4 bg-gray-50 border-4 rounded-2xl outline-none ${state.isBossFight ? 'border-red-400 text-red-900' : 'border-gray-300'}" placeholder="${state.startTime ? 'Piš...' : 'Klikni a začni psát...'}" autofocus autocomplete="off" spellcheck="false" />
+                <button onclick="skipWord();" ${state.isBossFight || !state.canSkip ? 'disabled' : ''} class="px-6 py-4 bg-orange-400 hover:bg-orange-500 text-white font-black text-xl rounded-2xl disabled:opacity-40">⏭️ Přeskočit</button>
+              </div>
+
+              ${hintHtml}
+            </div>
+          </div>
+        `;
+        document.getElementById('wordInput').focus();
+      }
+
+      else if (state.gameState === 'game_over') {
+        root.innerHTML = `
+          <div class="max-w-2xl mx-auto bg-red-800 rounded-3xl shadow-2xl p-10 text-center text-white border-4 border-red-500">
+            <div class="text-8xl mb-6">💀</div>
+            <h1 class="text-5xl font-black mb-4">Konec hry!</h1>
+            <p class="text-xl mb-8">Došly ti životy. Ale získané zkušenosti a zlaťáky ti zůstávají!</p>
+            
+            <div class="bg-red-950 rounded-xl p-8 mb-8 text-left grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <h3 class="font-bold text-red-300 mb-2 uppercase border-b border-red-800 pb-2">Tvoje Postava</h3>
+                <p>Úroveň: <strong class="text-amber-400">${state.charLevel}</strong></p>
+                <p>Zlaťáky celkem: <strong class="text-amber-400">${state.gold}</strong></p>
+              </div>
+              <div>
+                <h3 class="font-bold text-red-300 mb-2 uppercase border-b border-red-800 pb-2">Statistiky Lekce</h3>
+                <p>Správné úseky: <strong class="text-green-400">${state.score}</strong></p>
+                <p>Přesnost: <strong>${accuracy} %</strong></p>
+                <p>Rychlost: <strong class="text-amber-400">${currentCpm} úhozů/min</strong></p>
+              </div>
+            </div>
+
+            <button onclick="state.gameState='mode_select'; render();" class="w-full bg-white text-red-900 font-bold py-4 rounded-xl text-xl hover:bg-red-100">Zpět do menu</button>
+          </div>
+        `;
+      }
+    }
+
+    // --- BUTTON EVENT BRIDGE FUNCTIONS ---
+    window.toggleSound = () => { toggleSound(); render(); };
+    window.startGame = (levelId) => { startGame(levelId); render(); };
+    window.drinkPotion = () => { usePotion(); render(); };
+    window.skipWord = () => { handleSkip(); render(); };
+    window.buyShopItem = (itemType, price, id) => { buyItem(itemType, price, id); render(); };
+    window.equipPet = (id) => { state.activePet = id; playTone('buy'); saveGame(); render(); };
+
+    // Inicializace
+    loadSave();
+    render();
+  </script>
+</body>
+</html>
