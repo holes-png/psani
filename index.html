@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Klávesnicový Mistr ⌨️</title>
+  <!-- Načtení Tailwind CSS pro moderní vzhled -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Načtení Google Fonts pro stylové písmo -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Nunito', sans-serif; }
@@ -85,7 +87,7 @@
       "Tohle je ultimátní zkouška tvé rychlosti."
     ];
 
-    // --- GLOBÁLNÍ FUNKCE PRO VÝPOČET ZKUŠENOSTÍ (OPRAVA CHYBY) ---
+    // --- GLOBÁLNÍ FUNKCE ---
     function getExpNeeded(level) {
       const req = { 1: 10, 2: 15, 3: 20, 4: 25, 5: 40, 6: 60, 7: 90, 8: 140, 9: 200 };
       return req[level] || 9999;
@@ -161,7 +163,7 @@
       recentHistory: []
     };
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioCtx = null;
 
     function loadSave() {
       try {
@@ -175,7 +177,7 @@
           state.ownedPets = parsed.ownedPets || [];
           state.activePet = parsed.activePet || null;
         }
-      } catch (e) { console.error(e); }
+      } catch (e) { console.error("Nelze nacist ukladani:", e); }
     }
 
     function saveGame() {
@@ -185,11 +187,16 @@
           potions: state.potions, ownedPets: state.ownedPets, activePet: state.activePet
         };
         localStorage.setItem('klavesnicovy_mistr_save_v1', JSON.stringify(data));
-      } catch (e) { console.error(e); }
+      } catch (e) { console.error("Nelze ulozit:", e); }
     }
 
     function playTone(type) {
       if (!state.soundEnabled) return;
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (!audioCtx) return;
       if (audioCtx.state === 'suspended') audioCtx.resume();
       
       const osc = audioCtx.createOscillator();
@@ -210,12 +217,15 @@
         gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         osc.start(now); osc.stop(now + 0.3);
       } else if (type === 'levelup') {
-        osc.type = 'square'; osc.frequency.setValueAtTime(440, now); osc.frequency.setValueAtTime(554, now + 0.15);
-        osc.frequency.setValueAtTime(660, now + 0.3); osc.frequency.setValueAtTime(880, now + 0.45);
+        osc.type = 'square'; osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(554, now + 0.15);
+        osc.frequency.setValueAtTime(660, now + 0.3);
+        osc.frequency.setValueAtTime(880, now + 0.45);
         gain.gain.setValueAtTime(0.04, now); gain.gain.linearRampToValueAtTime(0, now + 0.8);
         osc.start(now); osc.stop(now + 0.8);
       } else if (type === 'boss_warn') {
-        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, now); osc.frequency.setValueAtTime(130, now + 0.25);
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, now);
+        osc.frequency.setValueAtTime(130, now + 0.25);
         gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.6);
         osc.start(now); osc.stop(now + 0.6);
       } else if (type === 'buy') {
@@ -241,6 +251,42 @@
         playTone('levelup');
         setTimeout(() => { state.levelUpAnim = false; render(); }, 3000);
       }
+    }
+
+    // --- BUTTON A EVENT FUNKCE ---
+    function toggleSoundBtn() { 
+      state.soundEnabled = !state.soundEnabled; 
+      if (state.soundEnabled && !audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      render(); 
+    }
+
+    function setMode(mode) {
+      state.appMode = mode;
+      state.gameState = 'level_select';
+      render();
+    }
+
+    function goState(target) {
+      state.gameState = target;
+      if (target === 'level_select') state.startTime = null;
+      render();
+    }
+
+    function startLevel(levelId) { 
+      state.currentLevel = levelId;
+      state.score = 0; state.skips = 0; state.correctStrokes = 0; state.wrongStrokes = 0;
+      state.startTime = null; state.elapsedSeconds = 0; state.canSkip = true; state.typedText = '';
+      state.showHint = false; state.isBossFight = false; state.wordsTypedCounter = 0;
+      if (state.appMode === 'game') state.hp = 100;
+      state.recentHistory = [];
+      const firstWord = pickWord(levelId);
+      state.currentWord = firstWord;
+      state.recentHistory.push(firstWord);
+      state.gameState = 'playing';
+      render();
     }
 
     function handleStroke(e) {
@@ -324,7 +370,40 @@
       render();
     }
 
-    // Timers
+    function drinkPotion() { 
+      if (state.potions > 0 && state.hp < 100) {
+        state.potions--; state.hp = Math.min(100, state.hp + 50);
+        playTone('heal'); state.healAnim = true;
+        setTimeout(() => { state.healAnim = false; render(); }, 400);
+        render();
+      }
+    }
+
+    function skipWord() { 
+      if (!state.canSkip || state.isBossFight) return;
+      state.skips++; state.canSkip = false; state.typedText = '';
+      const nextW = pickWord(state.currentLevel);
+      state.currentWord = nextW;
+      state.recentHistory.push(nextW);
+      if (state.recentHistory.length > 10) state.recentHistory.shift();
+      render();
+    }
+
+    function buyShopItem(itemType, price, id) { 
+      if (state.gold >= price) {
+        state.gold -= price; playTone('buy');
+        if (itemType === 'potion') state.potions++;
+        else if (itemType === 'pet') { state.ownedPets.push(id); state.activePet = id; }
+        saveGame();
+      } else playTone('error');
+      render();
+    }
+
+    function equipPet(id) { 
+      state.activePet = id; playTone('buy'); saveGame(); render(); 
+    }
+
+    // --- TIMERS ---
     setInterval(() => {
       if (state.gameState === 'playing' && state.startTime && !state.isBossFight) {
         state.elapsedSeconds = Math.floor((Date.now() - state.startTime) / 1000);
@@ -368,14 +447,14 @@
         <path d="M 75 90 L 125 90 L 135 160 Q 100 175 65 160 Z" fill="#b08968" />
         <path d="M 75 90 L 125 90 L 128 110 Q 100 120 72 110 Z" fill="#ddb892" />
         <rect x="80" y="135" width="18" height="18" fill="#7f5539" transform="rotate(-5, 87, 142)" />
-        <path d="M 82 135 L 96 152 M 96 135 L 82 152" stroke="#000" strokeWidth="1" opacity="0.6"/>
+        <path d="M 82 135 L 96 152 M 96 135 L 82 152" stroke="#000" stroke-width="1" stroke-opacity="0.6"/>
         <path d="M 70 125 Q 100 135 130 125 L 132 135 Q 100 145 68 135 Z" fill="#7f4f24" />
         <rect x="85" y="160" width="12" height="25" fill="#7f5539" />
         <rect x="103" y="160" width="12" height="25" fill="#7f5539" />
         <path d="M 78 185 L 97 185 Q 97 175 87 175 Z" fill="#432818" />
         <path d="M 103 185 L 122 185 Q 122 175 112 175 Z" fill="#432818" />
       `;
-      let faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" strokeWidth="3" fill="none" strokeLinecap="round" />`;
+      let faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" stroke-width="3" fill="none" stroke-linecap="round" />`;
       
       const baseEyes = `
         <ellipse cx="88" cy="65" rx="5" ry="6" fill="#ffffff" /><ellipse cx="112" cy="65" rx="5" ry="6" fill="#ffffff" />
@@ -397,7 +476,7 @@
           <path d="M 100 185 L 130 185 L 125 170 L 105 170 Z" fill="#212529" />
         `;
         faceFeatureSVG = `
-          <path d="M 78 58 L 95 63 M 122 58 L 105 63" stroke="#3e2723" strokeWidth="5" strokeLinecap="round" />
+          <path d="M 78 58 L 95 63 M 122 58 L 105 63" stroke="#3e2723" stroke-width="5" stroke-linecap="round" />
           <path d="M 72 75 Q 100 130 130 75 Q 115 95 100 95 Q 85 95 72 75 Z" fill="#4e342e" />
         `;
         accessorySVG = `<path d="M 72 35 Q 100 10 128 35 Q 100 48 72 35 Z" fill="#2a9d8f" />`;
@@ -410,7 +489,7 @@
       if (level >= 3) {
         armorSVG = `
           <path d="M 73 90 L 127 90 L 130 155 L 70 155 Z" fill="url(#chainmail)" />
-          <path d="M 78 90 L 122 90 L 118 135 Q 100 148 82 135 Z" fill="url(#gradSteel)" stroke="#6c757d" strokeWidth="3" />
+          <path d="M 78 90 L 122 90 L 118 135 Q 100 148 82 135 Z" fill="url(#gradSteel)" stroke="#6c757d" stroke-width="3" />
           <rect x="73" y="125" width="54" height="14" fill="#111" />
         `;
         accessorySVG = `
@@ -505,7 +584,7 @@
           <path d="M 65 90 L 135 90 L 140 185 L 60 185 Z" fill="#ffffff" />
           <path d="M 75 90 L 125 90 L 100 135 Z" fill="url(#gradGold)" opacity="0.8" />
         `;
-        accessorySVG = `<ellipse cx="100" cy="15" rx="45" ry="12" fill="none" stroke="url(#gradGold)" strokeWidth="6" />`;
+        accessorySVG = `<ellipse cx="100" cy="15" rx="45" ry="12" fill="none" stroke="url(#gradGold)" stroke-width="6" />`;
         weaponSVG = `
           <rect x="135" y="35" width="12" height="120" fill="url(#gradGold)" rx="6" />
           <circle cx="141" cy="140" r="11" fill="#ffffff" />
@@ -520,24 +599,24 @@
         <div class="${szClass} rounded-full bg-gradient-to-b from-blue-100 to-indigo-300 overflow-hidden flex items-end justify-center transition-all duration-300 shadow-[inset_0_0_30px_rgba(0,0,0,0.2)] relative ${filterClass}">
           <svg viewBox="0 0 200 200" class="w-full h-full relative ${isSmall ? 'top-2' : 'top-6'} ${svgScale}">
             <defs>
-              <linearGradient id="gradSteel" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ffffff"/><stop offset="25%" stopColor="#ced4da"/><stop offset="50%" stopColor="#868e96"/><stop offset="80%" stopColor="#495057"/><stop offset="100%" stopColor="#212529"/></linearGradient>
-              <linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#fff3cd"/><stop offset="20%" stopColor="#ffea00"/><stop offset="50%" stopColor="#f5b700"/><stop offset="80%" stopColor="#d08c00"/><stop offset="100%" stopColor="#995800"/></linearGradient>
-              <linearGradient id="gradBlade" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#e9ecef"/><stop offset="30%" stopColor="#ffffff"/><stop offset="60%" stopColor="#dee2e6"/><stop offset="100%" stopColor="#adb5bd"/></linearGradient>
-              <linearGradient id="gradWood" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#7f4f24"/><stop offset="50%" stopColor="#b08968"/><stop offset="100%" stopColor="#432818"/></linearGradient>
-              <linearGradient id="gradCyber" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#4a4e69"/><stop offset="40%" stopColor="#22223b"/><stop offset="100%" stopColor="#0b090a"/></linearGradient>
-              <radialGradient id="fireGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#ffea00" stopOpacity="1"/><stop offset="30%" stopColor="#ff7b00" stopOpacity="0.9"/><stop offset="70%" stopColor="#d00000" stopOpacity="0.4"/><stop offset="100%" stopColor="#370617" stopOpacity="0"/></radialGradient>
-              <radialGradient id="neonCyan" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#e0ffff" stopOpacity="1"/><stop offset="30%" stopColor="#00ffff" stopOpacity="0.8"/><stop offset="70%" stopColor="#0077b6" stopOpacity="0.4"/><stop offset="100%" stopColor="#03045e" stopOpacity="0"/></radialGradient>
-              <radialGradient id="godAura" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#ffffff" stopOpacity="1"/><stop offset="25%" stopColor="#fff3cd" stopOpacity="0.9"/><stop offset="60%" stopColor="#f5b700" stopOpacity="0.4"/><stop offset="100%" stopColor="#ffffff" stopOpacity="0"/></radialGradient>
-              <radialGradient id="glowMagic" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#ffffff" stopOpacity="1"/><stop offset="30%" stopColor="#00f5d4" stopOpacity="0.8"/><stop offset="70%" stopColor="#9b5de5" stopOpacity="0.4"/><stop offset="100%" stopColor="#000000" stopOpacity="0"/></radialGradient>
-              <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ffe5d9"/><stop offset="60%" stopColor="#ffcad4"/><stop offset="100%" stopColor="#f4acb7"/></linearGradient>
-              <linearGradient id="capeGradRed" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ff4d6d"/><stop offset="50%" stopColor="#c9184a"/><stop offset="100%" stopColor="#590d22"/></linearGradient>
-              <linearGradient id="robeGradBlue" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stopColor="#5a189a"/><stop offset="50%" stopColor="#3c096c"/><stop offset="100%" stopColor="#10002b"/></linearGradient>
-              <pattern id="strawHat" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#e9c46a"/><path d="M 0 4 Q 4 -2 8 4 Q 4 10 0 4 Z" fill="#f4a261" stroke="#e76f51" strokeWidth="0.5"/></pattern>
-              <pattern id="plaid" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#c1121f"/><path d="M 0 8 L 16 8 M 8 0 L 8 16" stroke="#780000" strokeWidth="4" opacity="0.8"/><path d="M 0 4 L 16 4 M 4 0 L 4 16" stroke="#fff" strokeWidth="1" opacity="0.4"/></pattern>
-              <pattern id="chainmail" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#495057"/><circle cx="4" cy="4" r="3" fill="none" stroke="#ced4da" strokeWidth="1.5"/><circle cx="0" cy="0" r="3" fill="none" stroke="#6c757d" strokeWidth="1"/></pattern>
-              <pattern id="dragonScales" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#370617"/><path d="M 0 7 Q 7 -3 14 7 Q 7 17 0 7 Z" fill="#9d0208" stroke="#dc2f02" strokeWidth="1.5"/><circle cx="7" cy="5" r="1.5" fill="#ffba08" opacity="0.3"/></pattern>
-              <pattern id="cyberCircuit" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="url(#gradCyber)"/><path d="M 10 0 L 10 20 M 0 10 L 20 10" stroke="#00ffff" strokeWidth="0.5" opacity="0.3"/><circle cx="10" cy="10" r="1" fill="#00ffff"/></pattern>
-              <filter id="ultraShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="2" dy="10" stdDeviation="8" floodColor="#000" floodOpacity="0.6"/></filter>
+              <linearGradient id="gradSteel" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="25%" stop-color="#ced4da"/><stop offset="50%" stop-color="#868e96"/><stop offset="80%" stop-color="#495057"/><stop offset="100%" stop-color="#212529"/></linearGradient>
+              <linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fff3cd"/><stop offset="20%" stop-color="#ffea00"/><stop offset="50%" stop-color="#f5b700"/><stop offset="80%" stop-color="#d08c00"/><stop offset="100%" stop-color="#995800"/></linearGradient>
+              <linearGradient id="gradBlade" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#e9ecef"/><stop offset="30%" stop-color="#ffffff"/><stop offset="60%" stop-color="#dee2e6"/><stop offset="100%" stop-color="#adb5bd"/></linearGradient>
+              <linearGradient id="gradWood" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#7f4f24"/><stop offset="50%" stop-color="#b08968"/><stop offset="100%" stop-color="#432818"/></linearGradient>
+              <linearGradient id="gradCyber" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4a4e69"/><stop offset="40%" stop-color="#22223b"/><stop offset="100%" stop-color="#0b090a"/></linearGradient>
+              <radialGradient id="fireGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffea00" stop-opacity="1"/><stop offset="30%" stop-color="#ff7b00" stop-opacity="0.9"/><stop offset="70%" stop-color="#d00000" stop-opacity="0.4"/><stop offset="100%" stop-color="#370617" stop-opacity="0"/></radialGradient>
+              <radialGradient id="neonCyan" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#e0ffff" stop-opacity="1"/><stop offset="30%" stop-color="#00ffff" stop-opacity="0.8"/><stop offset="70%" stop-color="#0077b6" stop-opacity="0.4"/><stop offset="100%" stop-color="#03045e" stop-opacity="0"/></radialGradient>
+              <radialGradient id="godAura" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="25%" stop-color="#fff3cd" stop-opacity="0.9"/><stop offset="60%" stop-color="#f5b700" stop-opacity="0.4"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+              <radialGradient id="glowMagic" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="30%" stop-color="#00f5d4" stop-opacity="0.8"/><stop offset="70%" stop-color="#9b5de5" stop-opacity="0.4"/><stop offset="100%" stop-color="#000000" stop-opacity="0"/></radialGradient>
+              <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffe5d9"/><stop offset="60%" stop-color="#ffcad4"/><stop offset="100%" stop-color="#f4acb7"/></linearGradient>
+              <linearGradient id="capeGradRed" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4d6d"/><stop offset="50%" stop-color="#c9184a"/><stop offset="100%" stop-color="#590d22"/></linearGradient>
+              <linearGradient id="robeGradBlue" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#5a189a"/><stop offset="50%" stop-color="#3c096c"/><stop offset="100%" stop-color="#10002b"/></linearGradient>
+              <pattern id="strawHat" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#e9c46a"/><path d="M 0 4 Q 4 -2 8 4 Q 4 10 0 4 Z" fill="#f4a261" stroke="#e76f51" stroke-width="0.5"/></pattern>
+              <pattern id="plaid" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#c1121f"/><path d="M 0 8 L 16 8 M 8 0 L 8 16" stroke="#780000" stroke-width="4" opacity="0.8"/><path d="M 0 4 L 16 4 M 4 0 L 4 16" stroke="#fff" stroke-width="1" opacity="0.4"/></pattern>
+              <pattern id="chainmail" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#495057"/><circle cx="4" cy="4" r="3" fill="none" stroke="#ced4da" stroke-width="1.5"/><circle cx="0" cy="0" r="3" fill="none" stroke="#6c757d" stroke-width="1"/></pattern>
+              <pattern id="dragonScales" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#370617"/><path d="M 0 7 Q 7 -3 14 7 Q 7 17 0 7 Z" fill="#9d0208" stroke="#dc2f02" stroke-width="1.5"/><circle cx="7" cy="5" r="1.5" fill="#ffba08" opacity="0.3"/></pattern>
+              <pattern id="cyberCircuit" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="url(#gradCyber)"/><path d="M 10 0 L 10 20 M 0 10 L 20 10" stroke="#00ffff" stroke-width="0.5" opacity="0.3"/><circle cx="10" cy="10" r="1" fill="#00ffff"/></pattern>
+              <filter id="ultraShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="2" dy="10" stdDeviation="8" flood-color="#000" flood-opacity="0.6"/></filter>
             </defs>
             <g class="${animClass}">
               <rect x="85" y="150" width="12" height="35" fill="#343a40" /><rect x="103" y="150" width="12" height="35" fill="#343a40" />
@@ -575,12 +654,12 @@
             <h1 class="text-6xl md:text-7xl font-extrabold text-indigo-600 mb-6 tracking-tight drop-shadow-sm">Klávesnicový Mistr</h1>
             <p class="text-2xl text-gray-600 mb-12">Vyber si, jak chceš dnes trénovat!</p>
             <div class="grid md:grid-cols-2 gap-8 mb-12">
-              <button onclick="state.appMode='basic'; state.gameState='level_select'; render();" class="bg-white p-10 rounded-3xl shadow-xl hover:shadow-2xl border-4 border-blue-200 hover:border-blue-500 transition-all transform hover:-translate-y-2 text-left relative overflow-hidden group">
+              <button onclick="setMode('basic');" class="bg-white p-10 rounded-3xl shadow-xl hover:shadow-2xl border-4 border-blue-200 hover:border-blue-500 transition-all transform hover:-translate-y-2 text-left relative overflow-hidden group">
                 <div class="text-7xl mb-6">🏫</div>
                 <h2 class="text-3xl font-bold text-gray-800 mb-2 group-hover:text-blue-600">Tréninkový mód</h2>
                 <p class="text-gray-500 text-lg">Bez stresu a životů. Sleduj svou rychlost a přesnost v detailních statistikách!</p>
               </button>
-              <button onclick="state.appMode='game'; state.gameState='level_select'; render();" class="bg-white p-10 rounded-3xl shadow-xl hover:shadow-2xl border-4 border-amber-200 hover:border-amber-500 transition-all transform hover:-translate-y-2 text-left relative overflow-hidden group">
+              <button onclick="setMode('game');" class="bg-white p-10 rounded-3xl shadow-xl hover:shadow-2xl border-4 border-amber-200 hover:border-amber-500 transition-all transform hover:-translate-y-2 text-left relative overflow-hidden group">
                 <div class="absolute -right-4 -top-4 bg-amber-400 text-white font-black py-1 px-8 rounded-bl-3xl shadow-md rotate-12">HRA!</div>
                 <div class="text-7xl mb-6">⚔️</div>
                 <h2 class="text-3xl font-bold text-gray-800 mb-2 group-hover:text-amber-600">Dobrodružství</h2>
@@ -588,10 +667,10 @@
               </button>
             </div>
             <div class="flex flex-col sm:flex-row justify-center gap-6">
-              <button onclick="state.gameState='handbook'; render();" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-black py-4 px-8 rounded-full border-4 border-indigo-300 transition-all shadow-md hover:scale-105 text-xl tracking-wide flex-grow max-w-sm mx-auto">📖 Příručka Hrdinů</button>
-              <button onclick="state.gameState='shop'; render();" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-black py-4 px-8 rounded-full border-4 border-amber-300 transition-all shadow-md hover:scale-105 text-xl tracking-wide flex-grow max-w-sm mx-auto">🛒 Otevřít Obchod</button>
+              <button onclick="goState('handbook');" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-900 font-black py-4 px-8 rounded-full border-4 border-indigo-300 transition-all shadow-md hover:scale-105 text-xl tracking-wide flex-grow max-w-sm mx-auto">📖 Příručka Hrdinů</button>
+              <button onclick="goState('shop');" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-black py-4 px-8 rounded-full border-4 border-amber-300 transition-all shadow-md hover:scale-105 text-xl tracking-wide flex-grow max-w-sm mx-auto">🛒 Otevřít Obchod</button>
             </div>
-            <button onclick="window.toggleSound();" class="mt-8 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-xl text-sm">${state.soundEnabled ? '🔊 Zvuk zapnutý' : '🔇 Zvuk vypnutý'}</button>
+            <button onclick="toggleSoundBtn();" class="mt-8 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-xl text-sm">${state.soundEnabled ? '🔊 Zvuk zapnutý' : '🔇 Zvuk vypnutý'}</button>
           </div>
         `;
       } 
@@ -600,7 +679,7 @@
         let cards = "";
         Object.values(LEVELS).forEach(lvl => {
           cards += `
-            <button onclick="window.startGame(${lvl.id});" class="flex flex-col items-center p-6 bg-gray-50 hover:bg-indigo-100 border-2 border-gray-200 hover:border-indigo-400 rounded-2xl transition-all shadow-sm hover:shadow-lg text-center transform hover:-translate-y-1 relative overflow-hidden cursor-pointer">
+            <button onclick="startLevel(${lvl.id});" class="flex flex-col items-center p-6 bg-gray-50 hover:bg-indigo-100 border-2 border-gray-200 hover:border-indigo-400 rounded-2xl transition-all shadow-sm hover:shadow-lg text-center transform hover:-translate-y-1 relative overflow-hidden cursor-pointer">
               ${state.appMode === 'game' ? `<div class="absolute top-0 right-0 bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-bl-xl shadow-sm">${lvl.id} EXP</div>` : ''}
               <span class="text-2xl font-bold text-gray-800 mb-2 mt-4">${lvl.name}</span>
               <span class="text-sm text-gray-600 leading-tight">${lvl.description}</span>
@@ -609,7 +688,7 @@
         });
         root.innerHTML = `
           <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl p-8 text-center border-4 border-indigo-200 relative">
-            <button onclick="state.gameState='mode_select'; render();" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
+            <button onclick="goState('mode_select');" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
             <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-600 mb-4 tracking-tight mt-12 md:mt-0">${state.appMode === 'game' ? '🌍 Mapa Dobrodružství' : '📚 Tréninkové Lekce'}</h1>
             <p class="text-xl text-gray-500 mb-10">Vyber si obtížnost textu k psaní.</p>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${cards}</div>
@@ -631,7 +710,7 @@
         }
         root.innerHTML = `
           <div class="max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl p-8 text-center border-4 border-indigo-200 relative">
-            <button onclick="state.gameState='mode_select'; render();" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
+            <button onclick="goState('mode_select');" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
             <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-600 mb-4 tracking-tight mt-12 md:mt-0">📖 Příručka Hrdinů</h1>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">${cards}</div>
           </div>
@@ -645,7 +724,7 @@
         const dragonBought = state.ownedPets.includes('dragon');
         root.innerHTML = `
           <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl p-8 border-4 border-indigo-200 relative">
-            <button onclick="state.gameState='mode_select'; render();" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
+            <button onclick="goState('mode_select');" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
             <div class="text-center mb-10">
               <h1 class="text-5xl font-extrabold text-indigo-600 mb-4">🛒 Tajemný Obchod</h1>
               <div class="bg-amber-100 text-amber-900 inline-block px-8 py-3 rounded-full font-black text-2xl border-4 border-amber-300 shadow-sm">Tvé zlaťáky: ${state.gold} 🪙</div>
@@ -655,15 +734,15 @@
                 <div class="text-6xl mb-4">🧪</div>
                 <h2 class="text-2xl font-bold text-red-800 mb-2">Lektvar Zdraví</h2>
                 <p class="font-bold text-lg mb-6">Máš u sebe: ${state.potions}x</p>
-                <button onclick="window.buyShopItem('potion', 50, null);" class="px-8 py-4 rounded-full font-black text-xl shadow-md transition-all ${state.gold >= 50 ? 'bg-amber-400 hover:bg-amber-500 text-white' : 'bg-gray-200 text-gray-400'}">Koupit za 50 🪙</button>
+                <button onclick="buyShopItem('potion', 50, null);" class="px-8 py-4 rounded-full font-black text-xl shadow-md transition-all ${state.gold >= 50 ? 'bg-amber-400 hover:bg-amber-500 text-white' : 'bg-gray-200 text-gray-400'}">Koupit za 50 🪙</button>
               </div>
               <div class="bg-green-50 p-6 rounded-3xl border-4 border-green-200 flex flex-col items-center">
                 <h2 class="text-2xl font-bold text-green-800 mb-4">Magická Zvířátka</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐕</span><span class="font-bold">Pes</span><span class="text-xs text-green-700 text-center mb-3">+2 zlaťáky</span>${dogBought ? `<button onclick="window.equipPet('dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dog' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dog' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="window.buyShopItem('pet', 200, 'dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">200 🪙</button>`}</div>
-                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐈</span><span class="font-bold">Kočka</span><span class="text-xs text-green-700 text-center mb-3">+3 heal HP</span>${catBought ? `<button onclick="window.equipPet('cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'cat' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'cat' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="window.buyShopItem('pet', 300, 'cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">300 🪙</button>`}</div>
-                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🦉</span><span class="font-bold">Sova</span><span class="text-xs text-green-700 text-center mb-3">Chytrý pohled</span>${owlBought ? `<button onclick="window.equipPet('owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'owl' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'owl' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="window.buyShopItem('pet', 400, 'owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">400 🪙</button>`}</div>
-                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐉</span><span class="font-bold">Dráček</span><span class="text-xs text-green-700 text-center mb-3">+1 EXP</span>${dragonBought ? `<button onclick="window.equipPet('dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dragon' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dragon' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="window.buyShopItem('pet', 1000, 'dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">1000 🪙</button>`}</div>
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐕</span><span class="font-bold">Pes</span><span class="text-xs text-green-700 text-center mb-3">+2 zlaťáky</span>${dogBought ? `<button onclick="equipPet('dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dog' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dog' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 200, 'dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">200 🪙</button>`}</div>
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐈</span><span class="font-bold">Kočka</span><span class="text-xs text-green-700 text-center mb-3">+3 heal HP</span>${catBought ? `<button onclick="equipPet('cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'cat' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'cat' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 300, 'cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">300 🪙</button>`}</div>
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🦉</span><span class="font-bold">Sova</span><span class="text-xs text-green-700 text-center mb-3">Chytrý pohled</span>${owlBought ? `<button onclick="equipPet('owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'owl' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'owl' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 400, 'owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">400 🪙</button>`}</div>
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐉</span><span class="font-bold">Dráček</span><span class="text-xs text-green-700 text-center mb-3">+1 EXP</span>${dragonBought ? `<button onclick="equipPet('dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dragon' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dragon' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 1000, 'dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">1000 🪙</button>`}</div>
                 </div>
               </div>
             </div>
@@ -728,7 +807,7 @@
                       <div class="flex justify-between font-black mb-1"><span class="text-blue-700">⭐ Zkušenosti</span><span>${state.charLevel >= 10 ? 'MAX LEVEL' : `${state.exp} / ${expNeededForNextLevel}`}</span></div>
                       <div class="h-6 bg-blue-100 rounded-full border-2 border-blue-200 overflow-hidden shadow-inner"><div class="bg-blue-500 h-full transition-all" style="width: ${state.charLevel >= 10 ? 100 : (state.exp / expNeededForNextLevel) * 100}%"></div></div>
                     </div>
-                    <button onclick="window.drinkPotion();" ${state.potions <= 0 || state.hp >= 100 ? 'disabled' : ''} class="p-3 bg-red-100 hover:bg-red-200 border-2 border-red-300 rounded-xl transition-all disabled:opacity-40">🧪 <span class="font-bold text-sm">${state.potions}x</span></button>
+                    <button onclick="drinkPotion();" ${state.potions <= 0 || state.hp >= 100 ? 'disabled' : ''} class="p-3 bg-red-100 hover:bg-red-200 border-2 border-red-300 rounded-xl transition-all disabled:opacity-40">🧪 <span class="font-bold text-sm">${state.potions}x</span></button>
                   </div>
                 </div>
               </div>
@@ -736,8 +815,8 @@
 
             <div class="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-3xl border-2 border-indigo-100 gap-4 mb-6">
               <div class="flex gap-4">
-                <button onclick="state.gameState='level_select'; state.startTime=null; render();" class="bg-gray-100 font-bold px-4 py-2 hover:bg-gray-200 rounded-xl">← Odejít</button>
-                <button onclick="window.toggleSound();" class="bg-gray-100 font-bold px-4 py-2 hover:bg-gray-200 rounded-xl">${state.soundEnabled ? '🔊' : '🔇'}</button>
+                <button onclick="goState('level_select');" class="bg-gray-100 font-bold px-4 py-2 hover:bg-gray-200 rounded-xl">← Odejít</button>
+                <button onclick="toggleSoundBtn();" class="bg-gray-100 font-bold px-4 py-2 hover:bg-gray-200 rounded-xl">${state.soundEnabled ? '🔊' : '🔇'}</button>
               </div>
               <div class="flex flex-wrap gap-4 justify-center text-lg font-bold">
                 ${state.appMode === 'game' ? `<div class="bg-amber-100 px-4 py-1 rounded-xl">🪙 ${state.gold}</div>` : ''}
@@ -755,13 +834,13 @@
               <div class="text-4xl sm:text-5xl md:text-6xl font-black mb-10 tracking-wide break-all">${lettersHtml}</div>
               <div class="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
                 <input id="wordInput" type="text" oninput="handleStroke(event)" value="${state.typedText}" class="flex-grow text-center text-3xl font-bold p-4 bg-gray-50 border-4 rounded-2xl outline-none ${state.isBossFight ? 'border-red-400 text-red-900' : 'border-gray-300'}" placeholder="${state.startTime ? 'Piš...' : 'Klikni a začni psát...'}" autofocus autocomplete="off" spellcheck="false" />
-                <button onclick="window.skipWord();" ${state.isBossFight || !state.canSkip ? 'disabled' : ''} class="px-6 py-4 bg-orange-400 hover:bg-orange-500 text-white font-black text-xl rounded-2xl disabled:opacity-40">⏭️ Přeskočit</button>
+                <button onclick="skipWord();" ${state.isBossFight || !state.canSkip ? 'disabled' : ''} class="px-6 py-4 bg-orange-400 hover:bg-orange-500 text-white font-black text-xl rounded-2xl disabled:opacity-40">⏭️ Přeskočit</button>
               </div>
               ${hintHtml}
             </div>
           </div>
         `;
-        // Keep focus on input
+        
         setTimeout(() => {
           const input = document.getElementById('wordInput');
           if (input) {
@@ -794,56 +873,12 @@
                 <p>Rychlost: <strong class="text-amber-400">${currentCpm} úhozů/min</strong></p>
               </div>
             </div>
-            <button onclick="state.gameState='mode_select'; render();" class="w-full bg-white text-red-900 font-bold py-4 rounded-xl text-xl hover:bg-red-100">Zpět do menu</button>
+            <button onclick="goState('mode_select');" class="w-full bg-white text-red-900 font-bold py-4 rounded-xl text-xl hover:bg-red-100">Zpět do menu</button>
           </div>
         `;
       }
     }
 
-    // --- BUTTON EVENT BRIDGE FUNCTIONS ---
-    window.toggleSound = () => { toggleSound(); render(); };
-    window.startGame = (levelId) => { 
-      state.currentLevel = levelId;
-      state.score = 0; state.skips = 0; state.correctStrokes = 0; state.wrongStrokes = 0;
-      state.startTime = null; state.elapsedSeconds = 0; state.canSkip = true; state.typedText = '';
-      state.showHint = false; state.isBossFight = false; state.wordsTypedCounter = 0;
-      if (state.appMode === 'game') state.hp = 100;
-      state.recentHistory = [];
-      const firstWord = pickWord(levelId);
-      state.currentWord = firstWord;
-      state.recentHistory.push(firstWord);
-      state.gameState = 'playing';
-      render();
-    };
-    window.drinkPotion = () => { 
-      if (state.potions > 0 && state.hp < 100) {
-        state.potions--; state.hp = Math.min(100, state.hp + 50);
-        playTone('heal'); state.healAnim = true;
-        setTimeout(() => { state.healAnim = false; render(); }, 400);
-        render();
-      }
-    };
-    window.skipWord = () => { 
-      if (!state.canSkip || state.isBossFight) return;
-      state.skips++; state.canSkip = false; state.typedText = '';
-      const nextW = pickWord(state.currentLevel);
-      state.currentWord = nextW;
-      state.recentHistory.push(nextW);
-      if (state.recentHistory.length > 10) state.recentHistory.shift();
-      render();
-    };
-    window.buyShopItem = (itemType, price, id) => { 
-      if (state.gold >= price) {
-        state.gold -= price; playTone('buy');
-        if (itemType === 'potion') state.potions++;
-        else if (itemType === 'pet') { state.ownedPets.push(id); state.activePet = id; }
-        saveGame();
-      } else playTone('error');
-      render();
-    };
-    window.equipPet = (id) => { state.activePet = id; playTone('buy'); saveGame(); render(); };
-
-    // Initialization
     loadSave();
     render();
   </script>
