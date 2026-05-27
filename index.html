@@ -37,7 +37,10 @@
     .animate-spin-slow { animation: spin-slow 15s linear infinite; }
   </style>
 </head>
-<body class="bg-indigo-50 min-h-screen flex flex-col justify-between">
+<body class="bg-indigo-50 min-h-screen flex flex-col justify-between relative">
+
+  <!-- ZOBRAZENÍ VERZE -->
+  <div id="version-display" class="absolute bottom-2 right-4 text-xs font-bold text-gray-400 select-none pointer-events-none z-50"></div>
 
   <!-- HLAVNÍ KONTEJNER -->
   <div id="app" class="w-full max-w-6xl mx-auto p-2 sm:p-4 my-auto">
@@ -45,6 +48,10 @@
   </div>
 
   <script>
+    // --- VERZE APLIKACE ---
+    const APP_VERSION = "1.1.0";
+    document.getElementById('version-display').innerText = "Verze: " + APP_VERSION;
+
     // --- DATABÁZE ÚROVNÍ TEXTU ---
     const LEVELS = {
       'keys_basic': {
@@ -66,15 +73,19 @@
       'keys_shortcuts': {
         id: 'keys_shortcuts', name: 'Klávesové zkratky 🚀',
         type: 'keys',
-        expReward: 2,
+        expReward: 0, // Odměna za tuto zkušební úroveň odstraněna
         description: 'Vyzkoušej si zkopírovat, vložit nebo vybrat vše.',
         words: [
           { label: 'Zkopírovat (Copy)', desc: 'Zmáčkni Ctrl + C', match: ['control+c'] },
           { label: 'Vložit (Paste)', desc: 'Zmáčkni Ctrl + V', match: ['control+v'] },
-          { label: 'Vyjmout (Cut)', desc: 'Zmáčkni Ctrl + X', match: ['control+x'] },
           { label: 'Vybrat vše (Select All)', desc: 'Zmáčkni Ctrl + A', match: ['control+a'] },
-          { label: 'Vrátit zpět (Undo)', desc: 'Zmáčkni Ctrl + Z', match: ['control+z'] },
-          { label: 'Uložit (Save)', desc: 'Zmáčkni Ctrl + S', match: ['control+s'] }
+          { label: 'Zpět (Undo)', desc: 'Zmáčkni Ctrl + Z', match: ['control+z'] },
+          { label: 'Uložit (Save)', desc: 'Zmáčkni Ctrl + S', match: ['control+s'] },
+          { label: 'Hledat (Find)', desc: 'Zmáčkni Ctrl + F', match: ['control+f'] },
+          { label: 'Trvalé smazání', desc: 'Zmáčkni Shift + Delete', match: ['shift+delete'] },
+          { label: 'Vložit čistý text', desc: 'Zmáčkni Ctrl + Shift + V', match: ['control+shift+v'] },
+          { label: 'Otevřít menu', desc: 'Zmáčkni Alt + F', match: ['alt+f'] },
+          { label: 'Tučné písmo (Bold)', desc: 'Zmáčkni Ctrl + B', match: ['control+b'] }
         ]
       },
       1: {
@@ -327,9 +338,9 @@
               state.hp = Math.min(100, state.hp + bHeal);
               
               // KONTROLA NÁPOVĚDY PRO EXP ODMĚNU
-              let baseReward = LEVELS[state.currentLevel].expReward; // 1-2 pro klávesy, 1-6 pro zbytek
+              let baseReward = LEVELS[state.currentLevel].expReward;
               if (state.showHint && baseReward > 0) {
-                baseReward = Math.max(0, Math.floor(baseReward / 2)); // Poloviční EXP při zapnuté nápovědě
+                baseReward = Math.max(0, Math.floor(baseReward / 2));
               }
               state.exp += baseReward + bExp;
 
@@ -352,7 +363,6 @@
                 state.bossTimeLeft = 15;
                 state.typedText = '';
                 
-                // Vybere progresivní text bosse podle aktuální úrovně
                 const bossTextsList = BOSS_TEXTS_BY_LEVEL[state.currentLevel] || BOSS_TEXTS_BY_LEVEL[1];
                 const selectedBossPhrase = bossTextsList[Math.floor(Math.random() * bossTextsList.length)];
                 
@@ -440,7 +450,7 @@
       let pressedKey = e.key.toLowerCase();
       if (pressedKey === ' ') pressedKey = 'space';
       
-      if (!['control', 'shift', 'alt'].includes(pressedKey)) {
+      if (!['control', 'shift', 'alt', 'meta', 'os'].includes(pressedKey)) {
         combo.push(pressedKey);
       } else if (combo.length === 0) {
         combo.push(pressedKey);
