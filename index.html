@@ -46,7 +46,6 @@
 
   <script>
     // --- DATABÁZE ÚROVNÍ TEXTU ---
-    // Úrovně keys_basic a keys_shortcuts jsou nyní na začátku s odměnou 1 EXP a 2 EXP
     const LEVELS = {
       'keys_basic': {
         id: 'keys_basic', name: 'Speciální klávesy 🎛️',
@@ -122,13 +121,20 @@
       }
     };
 
-    const BOSS_TEXTS = [
-      "Rychle napiš tohle slovo, než boss zaútočí!",
-      "Temný drak chrlí oheň, braň se rychle!",
-      "Kouzelník sesílá blesk, odraz ho klávesnicí!",
-      "Pozor na padající meteorit, uhni!",
-      "Tohle je ultimátní zkouška tvé rychlosti."
-    ];
+    // --- PROGRESIVNÍ DATABÁZE BOSSŮ PODLE ÚROVNÍ ---
+    const BOSS_TEXTS_BY_LEVEL = {
+      1: ["maly pes", "les sumi", "mrak leti", "auto jede", "bily slon", "les krici"],
+      2: ["cerna zaba", "ostry nuz", "tepla vece", "zlate slunce", "divoky ptak"],
+      3: ["Mame velky hlad!", "Slunce zapada rychle!", "Auto jede rychle!", "Venku silne prsi!"],
+      4: ["Pozor, drak chrlí oheň!", "Rychle, utíkej pryč!", "Uf, to bylo těsné!", "Slyšíš ten hluk?"],
+      5: ["a+B-x!", "1@9&?", "+A-b=", "=1?2!"],
+      6: ["#a\${}b", "[c]d<e", ">f~g\\", "|h^i€"]
+    };
+
+    const HERO_NAMES = {
+      1: 'Rolník', 2: 'Dřevorubec', 3: 'Strážný', 4: 'Šermíř', 5: 'Ninja',
+      6: 'Mág', 7: 'Paladin', 8: 'Drakobijec', 9: 'Kyborg', 10: 'Pán Klávesnice'
+    };
 
     // --- GLOBÁLNÍ FUNKCE ---
     function getExpNeeded(level) {
@@ -335,17 +341,27 @@
             }
 
             checkLevelUp();
-            state.wordsTypedCounter++;
-            if (state.wordsTypedCounter % 15 === 0 && !state.isBossFight) {
-              state.isBossFight = true;
-              playTone('boss_warn');
-              state.bossTimeLeft = 15;
-              state.typedText = '';
-              state.currentWordObj = { label: 'BOSS', match: [] };
-              state.currentWord = BOSS_TEXTS[Math.floor(Math.random() * BOSS_TEXTS.length)];
-              saveGame();
-              render();
-              return;
+            
+            // Boss se aktivuje pouze u textových úrovní (Úroveň 1 až 6)
+            const lvl = LEVELS[state.currentLevel];
+            if (lvl.type !== 'keys') {
+              state.wordsTypedCounter++;
+              if (state.wordsTypedCounter % 15 === 0 && !state.isBossFight) {
+                state.isBossFight = true;
+                playTone('boss_warn');
+                state.bossTimeLeft = 15;
+                state.typedText = '';
+                
+                // Vybere progresivní text bosse podle aktuální úrovně
+                const bossTextsList = BOSS_TEXTS_BY_LEVEL[state.currentLevel] || BOSS_TEXTS_BY_LEVEL[1];
+                const selectedBossPhrase = bossTextsList[Math.floor(Math.random() * bossTextsList.length)];
+                
+                state.currentWordObj = selectedBossPhrase;
+                state.currentWord = selectedBossPhrase;
+                saveGame();
+                render();
+                return;
+              }
             }
           }
 
@@ -737,11 +753,11 @@
           <circle cx="100" cy="115" r="10" fill="#00ffff" />
           <circle cx="100" cy="115" r="4" fill="#ffffff" />
         `;
+        // Plně symetrický sci-fi vizor doplňující obě oči kybora
         faceFeatureSVG = `
-          <rect x="104" y="58" width="16" height="14" fill="#0b090a" rx="2" />
+          <rect x="70" y="55" width="60" height="15" fill="#00ffff" opacity="0.7" rx="3" />
+          <path d="M 70 62 L 130 62" stroke="#ffffff" stroke-width="2" />
           <circle cx="112" cy="65" r="5" fill="#ff0000" />
-          <rect x="106" y="64" width="12" height="2" fill="#ffffff" />
-          <path d="M 112 55 L 112 75 M 102 65 L 122 65" stroke="#00ffff" stroke-width="1" opacity="0.7" />
         `;
         accessorySVG = `
           <path d="M 95 40 L 140 40 L 140 85 L 128 85 L 128 52 L 95 52 Z" fill="url(#gradSteel)" />
