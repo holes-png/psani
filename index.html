@@ -16,8 +16,8 @@
       75% { transform: translateX(10px) rotate(8deg) scale(0.95); }
     }
     @keyframes breatheHero {
-      0%, 100% { transform: translateY(0) scaleY(1); }
-      50% { transform: translateY(-5px) scaleY(1.03); }
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.02) translateY(-2px); }
     }
     @keyframes float {
       0%, 100% { transform: translateY(0); }
@@ -31,10 +31,10 @@
       100% { transform: rotate(360deg); }
     }
     .animate-shake { animation: shakeHero 0.3s ease-in-out; }
-    .animate-breathe { animation: breatheHero 3s ease-in-out infinite; transform-origin: 100px 150px; }
-    .animate-float { animation: float 3s ease-in-out infinite; }
-    .animate-wind { animation: wind 2s ease-in-out infinite; }
-    .animate-spin-slow { animation: spin-slow 15s linear infinite; }
+    .animate-breathe { animation: breatheHero 4s ease-in-out infinite; transform-origin: center bottom; will-change: transform; }
+    .animate-float { animation: float 4s ease-in-out infinite; will-change: transform; }
+    .animate-wind { animation: wind 2s ease-in-out infinite; will-change: transform; }
+    .animate-spin-slow { animation: spin-slow 15s linear infinite; will-change: transform; }
   </style>
 </head>
 <body class="bg-indigo-50 min-h-screen flex flex-col justify-between relative">
@@ -49,7 +49,7 @@
 
   <script>
     // --- VERZE APLIKACE ---
-    const APP_VERSION = "1.4.0";
+    const APP_VERSION = "1.6.0";
     document.getElementById('version-display').innerText = "Verze: " + APP_VERSION;
 
     // --- TRVALÝ KLÍČ K ULOŽENÍ ---
@@ -137,10 +137,10 @@
 
     // --- PROGRESIVNÍ DATABÁZE BOSSŮ PODLE ÚROVNÍ ---
     const BOSS_TEXTS_BY_LEVEL = {
-      1: ["maly pes", "les šumí", "mrak leti", "auto jede", "bily slon", "les krici"],
-      2: ["cerna zaba", "ostry nuz", "tepla vece", "zlate slunce", "divoky ptak"],
-      3: ["Mame velky hlad!", "Slunce zapada rychle!", "Auto jede rychle!", "Venku silne prsi!"],
-      4: ["Pozor, drak chrlí oheň!", "Rychle, utíkej pryč!", "Uf, to bylo těsné!", "Slyšíš ten hluk?"],
+      1: ["pes les oko", "voda kolo sova", "mrak vlak hrad", "strom okno zub", "vlas den noc", "sen syn dar"],
+      2: ["černá žába", "ostrý nůž", "teplá večeře", "zlaté slunce", "divoký pták"],
+      3: ["Máme velký hlad", "Slunce rychle zapadá", "Staré auto jede", "Venku silně prší"],
+      4: ["Pozor, drak chrlí oheň!", "Rychle, utíkej pryč!", "Uf, to bylo velmi těsné!", "Slyšíš ten podivný hluk?"],
       5: ["a+B-x!", "1@9&?", "+A-b=", "=1?2!"],
       6: ["#a\${}b", "[c]d<e", ">f~g\\", "|h^i€"]
     };
@@ -180,7 +180,7 @@
         '~': [['Pravý Alt (AltGr)', '1']], '\\': [['Pravý Alt (AltGr)', 'Q']], '|': [['Pravý Alt (AltGr)', 'W']],
         '^': [['Pravý Alt (AltGr)', '3']], '€': [['Pravý Alt (AltGr)', 'E']], '§': [['Klávesa pod Esc']],
         '°': [['Pravý Alt (AltGr)', '5']], '$': [['Pravý Alt (AltGr)', 'Ů']], '?': [['Shift', ', (čárka)']],
-        '!': [['Shift', '§ (pod Esc)']], // Opravena nápověda pro vykřičník (!)
+        '!': [['Shift', '§ (pod Esc)']], 
         '+': [['Numerická +'], ['1 (vlevo nahoře)']], '-': [['Numerická -'], ['- (vedle pravého Shiftu)']],
         '=': [['Shift', '- (vedle pravého Shiftu)']], '*': [['Numerická *'], ['Pravý Alt (AltGr)', '-']], '/': [['Numerická /'], ['Shift', 'ú']],
         '.': [['Numerická .'], ['Klávesa . (vedle čárky)']], ',': [['Klávesa , (vedle M)']], ' ': [['Mezerník (nejdelší klávesa dole)']],
@@ -215,7 +215,7 @@
       elapsedSeconds: 0,
       canSkip: true,
       showHint: false,
-      hp: 100,
+      hp: 100, // Přidáno perzistentní HP
       charLevel: 1,
       exp: 0,
       gold: 0,
@@ -232,7 +232,11 @@
       soundEnabled: false,
       recentHistory: [],
       showResetConfirm: false,
-      isAdmin: false // Status administrátora
+      showAdminPrompt: false, // Učitelské heslo
+      adminPassInput: '',
+      adminError: false,
+      adminMessage: '',
+      isAdmin: false 
     };
 
     let audioCtx = null;
@@ -248,6 +252,7 @@
           state.potions = parsed.potions || 0;
           state.ownedPets = parsed.ownedPets || [];
           state.activePet = parsed.activePet || null;
+          state.hp = parsed.hp !== undefined ? parsed.hp : 100; // Načtení HP z uložení
         }
       } catch (e) { console.error("Nelze nacist ukladani:", e); }
     }
@@ -256,7 +261,8 @@
       try {
         const data = {
           charLevel: state.charLevel, exp: state.exp, gold: state.gold,
-          potions: state.potions, ownedPets: state.ownedPets, activePet: state.activePet
+          potions: state.potions, ownedPets: state.ownedPets, activePet: state.activePet,
+          hp: state.hp // Uložení HP
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(data));
       } catch (e) { console.error("Nelze ulozit:", e); }
@@ -346,7 +352,6 @@
               state.lastEarnedGold = 50;
               playTone('levelup');
             } else {
-              // Zlaťáky ani bonusy od Petů se v keys_basic a keys_shortcuts (nultých úrovních) vůbec nepřičítají!
               let gainedGold = 0;
               let bGold = (state.activePet === 'dog' && !isKeyMode) ? 2 : 0;
               let bExp = state.activePet === 'dragon' ? 1 : 0;
@@ -376,7 +381,6 @@
 
             checkLevelUp();
             
-            // Boss se aktivuje pouze u textových úrovní (Úroveň 1 až 6)
             if (lvl.type !== 'keys') {
               state.wordsTypedCounter++;
               if (state.wordsTypedCounter % 15 === 0 && !state.isBossFight) {
@@ -406,7 +410,6 @@
           saveGame();
           render();
           
-          // Skrytí vizuální indikace přičtení mincí po chvíli
           setTimeout(() => {
             state.lastEarnedGold = 0;
             render();
@@ -417,7 +420,8 @@
 
     function penalizePlayer() {
         if (state.appMode === 'game') {
-          state.hp -= 5;
+          let damage = state.activePet === 'owl' ? 2 : 5; // Sova snižuje poškození z chyb
+          state.hp -= damage;
           state.hitAnim = true;
           setTimeout(() => { state.hitAnim = false; render(); }, 300);
           if (state.hp <= 0) {
@@ -531,21 +535,34 @@
       state.exp = 0;
       state.gold = 0;
       state.potions = 0;
+      state.hp = 100;
       state.ownedPets = [];
       state.activePet = null;
       state.showResetConfirm = false;
       render();
     };
 
-    // --- FUNKCE PRO ADMINISTRAČNÍ MÓD ---
-    window.tryAdminAccess = function() {
-      const pass = prompt("Zadej heslo pro administraci (nápověda: heslo je 'skola'):");
+    // --- FUNKCE PRO ADMINISTRAČNÍ MÓD (OPRAVA VYSKAKOVACÍHO OKNA) ---
+    window.openAdminPrompt = function() {
+      state.showAdminPrompt = true;
+      state.adminError = false;
+      state.adminPassInput = '';
+      render();
+    };
+
+    window.submitAdminPass = function() {
+      const inputEl = document.getElementById('adminPassInput');
+      const pass = inputEl ? inputEl.value : state.adminPassInput;
       if (pass === 'skola') {
          state.isAdmin = true;
-         alert("Vítej pane učiteli! Ovládací panel byl odemčen na úvodní obrazovce.");
+         state.showAdminPrompt = false;
+         state.adminError = false;
+         state.adminMessage = "Učitelský panel úspěšně odemčen!";
+         setTimeout(() => { state.adminMessage = ''; render(); }, 3000);
          render();
-      } else if (pass !== null) {
-         alert("Nesprávné heslo!");
+      } else {
+         state.adminError = true;
+         render();
       }
     };
 
@@ -595,7 +612,12 @@
       state.score = 0; state.skips = 0; state.correctStrokes = 0; state.wrongStrokes = 0;
       state.startTime = null; state.elapsedSeconds = 0; state.canSkip = true; state.typedText = '';
       state.showHint = false; state.isBossFight = false; state.wordsTypedCounter = 0;
-      if (state.appMode === 'game') state.hp = 100;
+      
+      // Oživení mrtvého hráče po vstupu do nové hry
+      if (state.appMode === 'game' && state.hp <= 0) {
+        state.hp = 100;
+      }
+      
       state.recentHistory = [];
       const firstWord = pickWord(levelId);
       state.currentWordObj = firstWord;
@@ -729,7 +751,7 @@
           <path d="M 78 58 L 95 63 M 122 58 L 105 63" stroke="#3e2723" stroke-width="5" stroke-linecap="round" />
           <path d="M 72 75 Q 100 130 130 75 Q 115 95 100 95 Q 85 95 72 75 Z" fill="#4e342e" />
         `;
-        accessorySVG = `<path d="M 72 45 Q 100 20 128 45 Q 100 58 72 45 Z" fill="#2a9d8f" />`; // OPRAVENA POZICE ČEPICE
+        accessorySVG = `<path d="M 72 45 Q 100 20 128 45 Q 100 58 72 45 Z" fill="#2a9d8f" />`;
         weaponSVG = `
           <rect x="133" y="40" width="12" height="120" fill="url(#gradWood)" rx="5" />
           <path d="M 120 55 L 158 55 L 175 80 L 175 105 L 158 130 L 120 130 Z" fill="url(#gradSteel)" />
@@ -782,7 +804,7 @@
           <circle cx="132" cy="130" r="8" fill="url(#skinGrad)" />
         `;
       }
-      else if (level === 6) { // OPRAVENÁ GRAFIKA MÁGA (Bílý plnovous neni obří, sedí hezky pod nosem)
+      else if (level === 6) {
         armorSVG = `
           <path d="M 70 90 L 130 90 L 150 190 L 50 190 Z" fill="url(#robeGradBlue)" />
           <rect x="75" y="130" width="50" height="12" fill="url(#gradGold)" />
@@ -848,7 +870,6 @@
           <circle cx="100" cy="115" r="10" fill="#00ffff" />
           <circle cx="100" cy="115" r="4" fill="#ffffff" />
         `;
-        // Symetrický sci-fi vizor
         faceFeatureSVG = `
           <rect x="70" y="55" width="60" height="15" fill="#00ffff" opacity="0.7" rx="3" />
           <path d="M 70 62 L 130 62" stroke="#ffffff" stroke-width="2" />
@@ -875,7 +896,7 @@
           <circle cx="141" cy="140" r="11" fill="#ffffff" />
         `;
       }
-      else if (level === 11) { // NOVÝ HRDINA: Temný Rytíř 👿
+      else if (level === 11) {
         armorSVG = `
           <path d="M 62 90 L 138 90 L 132 155 L 100 175 L 68 155 Z" fill="#1b1b1b" />
           <path d="M 75 95 L 125 95 L 120 145 L 100 160 L 80 145 Z" fill="#3a0ca3" />
@@ -897,7 +918,7 @@
           <circle cx="141" cy="150" r="5" fill="#ff0055" />
         `;
       }
-      else if (level >= 12) { // NOVÝ HRDINA: Bůh Kódu ⚡
+      else if (level >= 12) {
         armorSVG = `
           <path d="M 60 90 L 140 90 L 145 185 L 55 185 Z" fill="url(#gradCyber)" />
           <path d="M 75 90 L 125 90 L 100 145 Z" fill="#00ffff" opacity="0.6" />
@@ -926,12 +947,9 @@
             <defs>
               <linearGradient id="gradSteel" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="25%" stop-color="#ced4da"/><stop offset="50%" stop-color="#868e96"/><stop offset="80%" stop-color="#495057"/><stop offset="100%" stop-color="#212529"/></linearGradient>
               <linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fff3cd"/><stop offset="20%" stop-color="#ffea00"/><stop offset="50%" stop-color="#f5b700"/><stop offset="80%" stop-color="#d08c00"/><stop offset="100%" stop-color="#995800"/></linearGradient>
-              <linearGradient id="gradBlade" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#e9ecef"/><stop offset="30%" stop-color="#ffffff"/><stop offset="60%" stop-color="#dee2e6"/><stop offset="100%" stop-color="#adb5bd"/></linearGradient>
               <linearGradient id="gradWood" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#7f4f24"/><stop offset="50%" stop-color="#b08968"/><stop offset="100%" stop-color="#432818"/></linearGradient>
               <linearGradient id="gradCyber" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4a4e69"/><stop offset="40%" stop-color="#22223b"/><stop offset="100%" stop-color="#0b090a"/></linearGradient>
               <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffe5d9"/><stop offset="60%" stop-color="#ffcad4"/><stop offset="100%" stop-color="#f4acb7"/></linearGradient>
-              <linearGradient id="capeGradRed" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4d6d"/><stop offset="50%" stop-color="#c9184a"/><stop offset="100%" stop-color="#590d22"/></linearGradient>
-              <linearGradient id="robeGradBlue" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#5a189a"/><stop offset="50%" stop-color="#3c096c"/><stop offset="100%" stop-color="#10002b"/></linearGradient>
               <pattern id="strawHat" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#e9c46a"/><path d="M 0 4 Q 4 -2 8 4 Q 4 10 0 4 Z" fill="#f4a261" stroke="#e76f51" stroke-width="0.5"/></pattern>
               <pattern id="plaid" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#c1121f"/><path d="M 0 8 L 16 8 M 8 0 L 8 16" stroke="#780000" stroke-width="4" opacity="0.8"/><path d="M 0 4 L 16 4 M 4 0 L 4 16" stroke="#fff" stroke-width="1" opacity="0.4"/></pattern>
               <pattern id="chainmail" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#495057"/><circle cx="4" cy="4" r="3" fill="none" stroke="#ced4da" stroke-width="1.5"/><circle cx="0" cy="0" r="3" fill="none" stroke="#6c757d" stroke-width="1"/></pattern>
@@ -971,8 +989,34 @@
 
       if (state.gameState === 'mode_select') {
         let resetModalHtml = "";
+        
+        // ZOBRAZENÍ ADMIN PROMPTU NEBO ALERTOVÉ ZPRÁVY (NÁHRADA ZA PROMPT)
+        if (state.showAdminPrompt) {
+            resetModalHtml += `
+              <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+                <div class="bg-white p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl border-4 border-indigo-200 transform transition-all">
+                  <h3 class="text-3xl font-black text-indigo-600 mb-6">Administrace</h3>
+                  <input type="password" id="adminPassInput" class="w-full border-2 border-gray-300 rounded-xl p-3 mb-4 text-center text-xl outline-none focus:border-indigo-500" placeholder="Zadej heslo..." onkeydown="if(event.key === 'Enter') window.submitAdminPass();">
+                  ${state.adminError ? '<p class="text-red-500 font-bold mb-4">Nesprávné heslo!</p>' : ''}
+                  <div class="flex gap-4 justify-center">
+                    <button onclick="state.showAdminPrompt=false; state.adminError=false; render();" class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 rounded-xl font-bold text-gray-800 transition-colors">Zrušit</button>
+                    <button onclick="window.submitAdminPass();" class="flex-1 px-4 py-3 bg-indigo-500 hover:bg-indigo-600 rounded-xl font-bold text-white shadow-md transition-colors">Potvrdit</button>
+                  </div>
+                </div>
+              </div>
+            `;
+        }
+
+        if (state.adminMessage) {
+            resetModalHtml += `
+              <div class="fixed top-10 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-8 py-4 rounded-2xl shadow-2xl font-black z-50 animate-bounce">
+                ${state.adminMessage}
+              </div>
+            `;
+        }
+
         if (state.showResetConfirm) {
-            resetModalHtml = `
+            resetModalHtml += `
               <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
                 <div class="bg-white p-8 rounded-3xl max-w-md w-full text-center shadow-2xl border-4 border-red-200 transform transition-all">
                   <div class="text-6xl mb-4">⚠️</div>
@@ -991,13 +1035,13 @@
         let adminPanelHtml = "";
         if (state.isAdmin) {
           adminPanelHtml = `
-            <div class="mt-8 bg-red-50 border-4 border-red-200 rounded-3xl p-6 text-center max-w-xl mx-auto shadow-md animate-bounce-short">
-              <h3 class="font-black text-red-700 text-xl mb-4">⚙️ Administrátorský Panel (Heslo: skola)</h3>
+            <div class="mt-8 bg-red-50 border-4 border-red-200 rounded-3xl p-6 text-center max-w-xl mx-auto shadow-md">
+              <h3 class="font-black text-red-700 text-xl mb-4">⚙️ Administrátorský Panel</h3>
               <div class="flex flex-wrap gap-3 justify-center">
                 <button onclick="window.adminAddExp(10)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-transform active:scale-95 shadow-sm">+10 EXP</button>
                 <button onclick="window.adminAddExp(100)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-transform active:scale-95 shadow-sm">+100 EXP</button>
-                <button onclick="window.adminAddGold(100)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-transform active:scale-95 shadow-sm">+100 🪙</button>
-                <button onclick="window.adminAddGold(1000)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-transform active:scale-95 shadow-sm">+1000 🪙</button>
+                <button onclick="window.adminAddGold(100)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-transform active:scale-95 shadow-sm">+100 💰</button>
+                <button onclick="window.adminAddGold(1000)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-transform active:scale-95 shadow-sm">+1000 💰</button>
                 <button onclick="window.adminLevelUp()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-transform active:scale-95 shadow-sm">Level +1</button>
                 <button onclick="window.adminResetLevel()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-transform active:scale-95 shadow-sm">Reset Levelu</button>
               </div>
@@ -1030,7 +1074,7 @@
             <div class="mt-12 flex flex-wrap justify-center gap-4">
               <button onclick="toggleSoundBtn();" class="bg-white border-2 border-gray-200 hover:bg-gray-100 text-gray-800 font-bold py-3 px-6 rounded-2xl transition-colors shadow-sm">${state.soundEnabled ? '🔊 Zvuk zapnutý' : '🔇 Zvuk vypnutý'}</button>
               <button onclick="state.showResetConfirm=true; render();" class="bg-red-50 border-2 border-red-200 hover:bg-red-100 text-red-700 font-bold py-3 px-6 rounded-2xl transition-colors shadow-sm">⚠️ Začít znovu (Reset)</button>
-              <button onclick="window.tryAdminAccess();" class="bg-gray-100 border-2 border-gray-200 hover:bg-gray-200 text-gray-600 font-bold py-3 px-6 rounded-2xl transition-colors shadow-sm">⚙️ Pohled učitele</button>
+              ${!state.isAdmin ? `<button onclick="window.openAdminPrompt();" class="bg-gray-100 border-2 border-gray-200 hover:bg-gray-200 text-gray-600 font-bold py-3 px-6 rounded-2xl transition-colors shadow-sm">⚙️ Pohled učitele</button>` : ''}
             </div>
             ${adminPanelHtml}
           </div>
@@ -1062,11 +1106,11 @@
 
       else if (state.gameState === 'handbook') {
         let cards = "";
-        for (let i = 1; i <= 12; i++) { // ROZŠÍŘENO DO LEVELU 12
+        for (let i = 1; i <= 12; i++) {
           cards += `
             <div class="flex flex-col items-center bg-gray-50 p-6 rounded-3xl border-4 border-gray-200 hover:border-indigo-400 transition-all shadow-md">
               ${renderAvatar(i, true)}
-              <h4 class="mt-4 font-black text-indigo-900 text-lg">${HERO_NAMES[i]}</h4> <!-- NÁZVY HRDINŮ V PŘÍRUČCE -->
+              <h4 class="mt-4 font-black text-indigo-900 text-lg">${HERO_NAMES[i]}</h4>
               <div class="mt-2 bg-amber-100 text-amber-900 px-5 py-2 rounded-full font-black text-base border-2 border-amber-300 shadow-sm w-full text-center">
                 ${i === 1 ? 'STARTOVNÍ' : `CELKEM: ${getCumulativeExp(i)} EXP`}
               </div>
@@ -1092,22 +1136,22 @@
             <button onclick="goState('mode_select');" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
             <div class="text-center mb-10">
               <h1 class="text-5xl font-extrabold text-indigo-600 mb-4">🛒 Tajemný Obchod</h1>
-              <div class="bg-amber-100 text-amber-900 inline-block px-8 py-3 rounded-full font-black text-2xl border-4 border-amber-300 shadow-sm">Tvé zlaťáky: ${state.gold} 🪙</div>
+              <div class="bg-amber-100 text-amber-900 inline-block px-8 py-3 rounded-full font-black text-2xl border-4 border-amber-300 shadow-sm">Tvé zlaťáky: ${state.gold} 💰</div>
             </div>
             <div class="grid md:grid-cols-2 gap-8">
               <div class="bg-red-50 p-6 rounded-3xl border-4 border-red-200 flex flex-col items-center">
                 <div class="text-6xl mb-4">🧪</div>
                 <h2 class="text-2xl font-bold text-red-800 mb-2">Lektvar Zdraví</h2>
                 <p class="font-bold text-lg mb-6">Máš u sebe: ${state.potions}x</p>
-                <button onclick="buyShopItem('potion', 50, null);" class="px-8 py-4 rounded-full font-black text-xl shadow-md transition-all ${state.gold >= 50 ? 'bg-amber-400 hover:bg-amber-500 text-white' : 'bg-gray-200 text-gray-400'}">Koupit za 50 🪙</button>
+                <button onclick="buyShopItem('potion', 50, null);" class="px-8 py-4 rounded-full font-black text-xl shadow-md transition-all ${state.gold >= 50 ? 'bg-amber-400 hover:bg-amber-500 text-white' : 'bg-gray-200 text-gray-400'}">Koupit za 50 💰</button>
               </div>
               <div class="bg-green-50 p-6 rounded-3xl border-4 border-green-200 flex flex-col items-center">
                 <h2 class="text-2xl font-bold text-green-800 mb-4">Magická Zvířátka</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐕</span><span class="font-bold">Pes</span><span class="text-xs text-green-700 text-center mb-3">+2 zlaťáky</span>${dogBought ? `<button onclick="equipPet('dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dog' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dog' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 2000, 'dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">2000 🪙</button>`}</div>
-                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐈</span><span class="font-bold">Kočka</span><span class="text-xs text-green-700 text-center mb-3">+3 heal HP</span>${catBought ? `<button onclick="equipPet('cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'cat' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'cat' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 3000, 'cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">3000 🪙</button>`}</div>
-                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🦉</span><span class="font-bold">Sova</span><span class="text-xs text-green-700 text-center mb-3">Chytrý pohled</span>${owlBought ? `<button onclick="equipPet('owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'owl' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'owl' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 4000, 'owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">4000 🪙</button>`}</div>
-                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐉</span><span class="font-bold">Dráček</span><span class="text-xs text-green-700 text-center mb-3">+1 EXP</span>${dragonBought ? `<button onclick="equipPet('dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dragon' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dragon' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 10000, 'dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">10000 🪙</button>`}</div>
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐕</span><span class="font-bold">Pes</span><span class="text-xs text-green-700 text-center mb-3">+2 zlaťáky</span>${dogBought ? `<button onclick="equipPet('dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dog' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dog' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 2000, 'dog');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">2000 💰</button>`}</div>
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐈</span><span class="font-bold">Kočka</span><span class="text-xs text-green-700 text-center mb-3">+3 heal HP</span>${catBought ? `<button onclick="equipPet('cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'cat' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'cat' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 3000, 'cat');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">3000 💰</button>`}</div>
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🦉</span><span class="font-bold">Sova</span><span class="text-xs text-green-700 text-center mb-3">Méně zranění z chyb</span>${owlBought ? `<button onclick="equipPet('owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'owl' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'owl' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 4000, 'owl');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">4000 💰</button>`}</div>
+                  <div class="bg-white p-4 rounded-xl border-2 border-green-300 flex flex-col items-center"><span class="text-4xl">🐉</span><span class="font-bold">Dráček</span><span class="text-xs text-green-700 text-center mb-3">+1 EXP</span>${dragonBought ? `<button onclick="equipPet('dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full ${state.activePet === 'dragon' ? 'bg-green-500 text-white' : 'bg-gray-200'}">${state.activePet === 'dragon' ? 'Aktivní' : 'Vybavit'}</button>` : `<button onclick="buyShopItem('pet', 10000, 'dragon');" class="px-4 py-2 rounded-lg font-bold text-sm w-full bg-amber-400 text-white">10000 💰</button>`}</div>
                 </div>
               </div>
             </div>
@@ -1170,7 +1214,6 @@
             `;
           }
         } else {
-          // Zobrazení pro Klávesový mód (Módy 7 a 8)
           lettersHtml = `<span class="text-indigo-700 font-black text-4xl md:text-6xl">${state.currentWordObj.desc}</span>`;
         }
 
@@ -1182,7 +1225,7 @@
                   ${state.isBossFight ? `<div class="absolute -top-10 text-white font-black text-3xl animate-pulse text-center w-full z-10">BOSS ÚTOČÍ!</div>` : ''}
                   ${renderAvatar(state.charLevel)}
                   <!-- NÁZEV HRDINY PŘÍMO VE HŘE -->
-                  <div class="mt-2 bg-indigo-900 text-white font-bold py-1 px-4 rounded-full text-sm shadow-md">${HERO_NAMES[state.charLevel]}</div>
+                  <div class="mt-2 bg-indigo-900 text-white font-bold py-1 px-4 rounded-full text-sm shadow-md z-10">${HERO_NAMES[state.charLevel]}</div>
                 </div>
                 <div class="flex-grow max-w-lg w-full flex flex-col gap-6">
                   <div>
@@ -1208,9 +1251,9 @@
               <div class="flex flex-wrap gap-4 justify-center text-lg font-bold">
                 ${state.appMode === 'game' ? `
                   <div class="bg-amber-100 px-4 py-1 rounded-xl relative flex items-center">
-                    🪙 <span class="ml-1">${state.gold}</span>
+                    💰 <span class="ml-1">${state.gold}</span>
                     <!-- UKAZATEL ZÍSKANÝCH MINCÍ -->
-                    ${state.lastEarnedGold > 0 ? `<span class="absolute -top-6 right-0 text-amber-500 font-black text-sm animate-bounce">+${state.lastEarnedGold} 🪙</span>` : ''}
+                    ${state.lastEarnedGold > 0 ? `<span class="absolute -top-6 right-0 text-amber-500 font-black text-sm animate-bounce">+${state.lastEarnedGold} 💰</span>` : ''}
                   </div>
                 ` : ''}
                 <div class="bg-green-100 px-4 py-1 rounded-xl">✓ ${state.score}</div>
@@ -1285,6 +1328,29 @@
     }
 
     // --- PROPOJENÍ FUNKCÍ S WINDOW PRO ADMIN PANEL ---
+    window.openAdminPrompt = function() {
+      state.showAdminPrompt = true;
+      state.adminError = false;
+      state.adminPassInput = '';
+      render();
+    };
+
+    window.submitAdminPass = function() {
+      const inputEl = document.getElementById('adminPassInput');
+      const pass = inputEl ? inputEl.value : state.adminPassInput;
+      if (pass === 'skola') {
+         state.isAdmin = true;
+         state.showAdminPrompt = false;
+         state.adminError = false;
+         state.adminMessage = "Učitelský panel úspěšně odemčen!";
+         setTimeout(() => { state.adminMessage = ''; render(); }, 3000);
+         render();
+      } else {
+         state.adminError = true;
+         render();
+      }
+    };
+
     window.adminAddExp = adminAddExp;
     window.adminAddGold = adminAddGold;
     window.adminLevelUp = adminLevelUp;
