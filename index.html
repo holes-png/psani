@@ -46,34 +46,77 @@
 
   <script>
     // --- DATABÁZE ÚROVNÍ TEXTU ---
+    // Úrovně keys_basic a keys_shortcuts jsou nyní na začátku s odměnou 1 EXP a 2 EXP
     const LEVELS = {
+      'keys_basic': {
+        id: 'keys_basic', name: 'Speciální klávesy 🎛️',
+        type: 'keys',
+        expReward: 1,
+        description: 'Najdi a zmáčkni Shift, Enter, Ctrl, Alt a další.',
+        words: [
+          { label: 'Enter', desc: 'Zmáčkni klávesu Enter', match: ['enter'] },
+          { label: 'Shift', desc: 'Zmáčkni libovolný Shift', match: ['shift'] },
+          { label: 'Backspace', desc: 'Zmáčkni Backspace (Smazat)', match: ['backspace'] },
+          { label: 'Ctrl', desc: 'Zmáčkni klávesu Ctrl', match: ['control'] },
+          { label: 'Alt', desc: 'Zmáčkni klávesu Alt', match: ['alt'] },
+          { label: 'Escape', desc: 'Zmáčkni Escape (Esc)', match: ['escape'] },
+          { label: 'Tabulátor', desc: 'Zmáčkni Tabulátor (Tab)', match: ['tab'] },
+          { label: 'Mezerník', desc: 'Zmáčkni Mezerník (Space)', match: [' ', 'space', 'spacebar'] }
+        ]
+      },
+      'keys_shortcuts': {
+        id: 'keys_shortcuts', name: 'Klávesové zkratky 🚀',
+        type: 'keys',
+        expReward: 2,
+        description: 'Vyzkoušej si zkopírovat, vložit nebo vybrat vše.',
+        words: [
+          { label: 'Zkopírovat (Copy)', desc: 'Zmáčkni Ctrl + C', match: ['control+c'] },
+          { label: 'Vložit (Paste)', desc: 'Zmáčkni Ctrl + V', match: ['control+v'] },
+          { label: 'Vyjmout (Cut)', desc: 'Zmáčkni Ctrl + X', match: ['control+x'] },
+          { label: 'Vybrat vše (Select All)', desc: 'Zmáčkni Ctrl + A', match: ['control+a'] },
+          { label: 'Vrátit zpět (Undo)', desc: 'Zmáčkni Ctrl + Z', match: ['control+z'] },
+          { label: 'Uložit (Save)', desc: 'Zmáčkni Ctrl + S', match: ['control+s'] }
+        ]
+      },
       1: {
         id: 1, name: 'Úroveň 1: Začátečník 🐣',
+        type: 'text',
+        expReward: 1,
         description: 'Lehká slova bez háčků a základní čísla.',
         words: ['pes', 'les', 'oko', 'nos', 'mrak', 'vlak', 'kolo', 'sova', 'auto', 'hrad', 'strom', 'kniha', 'okno', 'voda', 'zima', 'ruka', 'noha', 'ucho', 'zub', 'vlas', 'den', 'noc', 'rak', 'sen', 'syn', 'dar', 'rok', 'let', 'plot', 'byt', 'luk', 'had', 'led', 'med', 'sud', 'lev', 'most', 'kos', 'krk', 'vlk', 'slon', '1', '2', '5', '10', '20', '100']
       },
       2: {
         id: 2, name: 'Úroveň 2: Průzkumník 🦊',
+        type: 'text',
+        expReward: 2,
         description: 'Slova s háčky (bez ť, ď, ň) a větší čísla.',
         words: ['žába', 'řeka', 'žebřík', 'nůžky', 'hřebík', 'počítač', 'čokoláda', 'pomeranč', 'růže', 'nůž', 'lžíce', 'talíř', 'hrneček', 'večeře', 'město', 'kříž', 'kůže', 'slunce', 'vítr', 'mýdlo', 'sýr', 'kráva', 'pták', 'myš', 'léto', 'březen', 'září', 'říjen', 'škola', 'školka', 'žák', 'učitel', '15', '42', '1000', '2024']
       },
       3: {
         id: 3, name: 'Úroveň 3: Šikula 🐯',
+        type: 'text',
+        expReward: 3,
         description: 'Jednoduchá spojení 2 až 3 slov a čísla.',
         words: ['Pes štěká', 'Slunce zapadá', 'Kočka pije', 'Táta čte', 'Dnes je úterý', 'Mám velký hlad', 'Jdeme ven', 'Auto jede rychle', 'Venku silně prší', 'Zelená tráva', 'Vysoký strom', 'Malý ptáček', 'Bílý mrak', 'Červené jablko', 'Rychlý vlak', 'Hluboká řeka', 'Studená voda', 'Teplý čaj', 'Píšu úkol', 'Čtu si knihu', 'Máma vaří', 'Bratr spí', 'Sestra kreslí', 'Děda pracuje', 'Babička peče', 'Je mi 10 let', 'Kup 5 rohlíků', 'Mám 2 psy']
       },
       4: {
         id: 4, name: 'Úroveň 4: Spisovatel ✍️',
+        type: 'text',
+        expReward: 4,
         description: 'Věty s interpunkcí a těžší česká gramatika.',
         words: ['Ahoj, jak se máš?', 'Dnes prší, viď?', 'Pozor, jede auto!', 'Jablka, hrušky a švestky.', 'Kde jsi byl včera?', 'Uf, to bylo těsné!', 'Koupíš sýr a chléb?', 'Viděl jsi tu labuť?', 'Můj kůň běží rychle.', 'Náměstí je plné lidí.', 'Dáš si se mnou oběd?', 'Hlemýžď se plazí.', 'Kde je to malé štěně?', 'Paměť mi dobře slouží.', 'Mám novou a velkou loď.', 'Máš chuť na čokoládu?', 'Dej mi to nářadí!', 'Zítra bude jistě pršet.', 'Nezapomeň na svůj úkol!', 'Půjdeme dnes do kina?', 'Venku už je velká tma.', 'Dobrou noc, mami!', 'Tati, podívej se!', 'To je překvapení!', 'Koupil jsi 10 jablek?', 'Dnes je 28. října.', 'Vlak jede v 15 hodin.', 'Vezmi si to s sebou!', 'Pojď se mnou ven.', 'Chtěl jsi mi něco říct?', 'Zpíval jsi moc hezky.', 'Děti si hrály na hřišti.', 'Výjimečně se mi to líbí.', 'Slyšel jsi tu novinu?']
       },
       5: {
         id: 5, name: 'Úroveň 5: Hacker 💻',
+        type: 'text',
+        expReward: 5,
         description: 'Skupiny 4 znaků (písmena a jednoduché znaky).',
         words: ['a+B-', 'x?Z!', '1@9&', '+A-b', '=1?2', '!.@,', '&*()', 'A@b*', 'X+y-', '1*2(', 'c&D*', 'E!f?', 'g@H+', '3-4=', 'i,J.', 'k?L!', 'm+N-', '5&6*', 'o(P)', 'q=R+', 's?T!', 'u@V&', 'w+X-', 'y*Z(', '7@8&', '9-0=', 'a.B,', 'c!D?', 'e(F)', 'g*H&']
       },
       6: {
         id: 6, name: 'Úroveň 6: Ninja klávesnice 🥷',
+        type: 'text',
+        expReward: 6,
         description: 'Skupiny 6 složitých znaků (často s AltGr).',
         words: ['#a${}b', '[c]d<e', '>f~g\\', '|h^i€', '§j°k#', '$l{m}', '[n<o>', '~p\\q|', '^r€s§', '°t#u$', '{v}w[', ']x<y>', '~z\\A|', '^B€C§', '°D#E$', '{F}G[', ']H<I>', '~J\\K|', '^L€M§', '°N#O$', '#1$2{3', '}4[5]', '<6>7~8', '\\9|0^', '€a§b°', '#X$Y{Z', '}A[B]', '<C>D~E', '\\F|G^', '§1°2#']
       }
@@ -136,7 +179,8 @@
       appMode: null, 
       gameState: 'mode_select', 
       currentLevel: null,
-      currentWord: '',
+      currentWordObj: null, // Pro speciální klávesy
+      currentWord: '', // Textová verze pro výpis
       typedText: '',
       score: 0,
       skips: 0,
@@ -237,7 +281,10 @@
 
     function pickWord(levelId) {
       const words = LEVELS[levelId].words;
-      let avail = words.filter(w => !state.recentHistory.includes(w));
+      let avail = words.filter(w => {
+         const str = typeof w === 'string' ? w : w.label;
+         return !state.recentHistory.includes(str);
+      });
       if (avail.length === 0) avail = words;
       return avail[Math.floor(Math.random() * avail.length)];
     }
@@ -252,6 +299,166 @@
         setTimeout(() => { state.levelUpAnim = false; render(); }, 3000);
       }
     }
+
+    // --- LOGIKA ÚSPĚCHU / NEÚSPĚCHU (SDÍLENÁ PRO OBA MÓDY) ---
+    function processCorrectWord() {
+        setTimeout(() => {
+          state.score++;
+          state.canSkip = true;
+
+          if (state.appMode === 'game') {
+            if (state.isBossFight) {
+              state.isBossFight = false;
+              state.hp = Math.min(100, state.hp + 20);
+              state.exp += 20;
+              state.gold += 50;
+              playTone('levelup');
+            } else {
+              let bGold = state.activePet === 'dog' ? 2 : 0;
+              let bExp = state.activePet === 'dragon' ? 1 : 0;
+              let bHeal = state.activePet === 'cat' ? 3 : 1;
+
+              state.hp = Math.min(100, state.hp + bHeal);
+              
+              // KONTROLA NÁPOVĚDY PRO EXP ODMĚNU
+              let baseReward = LEVELS[state.currentLevel].expReward; // 1-2 pro klávesy, 1-6 pro zbytek
+              if (state.showHint && baseReward > 0) {
+                baseReward = Math.max(0, Math.floor(baseReward / 2)); // Poloviční EXP při zapnuté nápovědě
+              }
+              state.exp += baseReward + bExp;
+
+              let wordLen = typeof state.currentWord === 'string' ? state.currentWord.length : 5;
+              state.gold += wordLen + bGold;
+              state.healAnim = true;
+              playTone('heal');
+              setTimeout(() => { state.healAnim = false; render(); }, 400);
+            }
+
+            checkLevelUp();
+            state.wordsTypedCounter++;
+            if (state.wordsTypedCounter % 15 === 0 && !state.isBossFight) {
+              state.isBossFight = true;
+              playTone('boss_warn');
+              state.bossTimeLeft = 15;
+              state.typedText = '';
+              state.currentWordObj = { label: 'BOSS', match: [] };
+              state.currentWord = BOSS_TEXTS[Math.floor(Math.random() * BOSS_TEXTS.length)];
+              saveGame();
+              render();
+              return;
+            }
+          }
+
+          state.typedText = '';
+          const nextW = pickWord(state.currentLevel);
+          state.currentWordObj = nextW;
+          state.currentWord = nextW.label || nextW;
+          state.recentHistory.push(state.currentWord);
+          if (state.recentHistory.length > 10) state.recentHistory.shift();
+          saveGame();
+          render();
+        }, 200);
+    }
+
+    function penalizePlayer() {
+        if (state.appMode === 'game') {
+          state.hp -= 5;
+          state.hitAnim = true;
+          setTimeout(() => { state.hitAnim = false; render(); }, 300);
+          if (state.hp <= 0) {
+            state.gameState = 'game_over';
+            saveGame();
+            render();
+          }
+        }
+    }
+
+    // --- OBSLUHA TEXTOVÉHO MÓDU ---
+    function handleStroke(e) {
+      if (state.gameState !== 'playing') return;
+      const lvl = LEVELS[state.currentLevel];
+      if (lvl.type === 'keys') return;
+
+      const inputVal = e.target.value;
+      if (!state.startTime) state.startTime = Date.now();
+
+      if (inputVal.length > state.typedText.length) {
+        const expectedPrefix = state.currentWord.substring(0, inputVal.length);
+        if (inputVal === expectedPrefix) {
+          state.correctStrokes++;
+          playTone('hit');
+        } else {
+          state.wrongStrokes++;
+          playTone('error');
+          penalizePlayer();
+          if (state.gameState === 'game_over') return;
+        }
+      }
+
+      state.typedText = inputVal;
+
+      if (inputVal === state.currentWord) {
+        processCorrectWord();
+      }
+      render();
+    }
+
+    // --- OBSLUHA KLÁVESOVÉHO MÓDU A ZKRATEK ---
+    window.handleKeyMode = function(e) {
+      if (state.gameState !== 'playing') return;
+      const lvl = LEVELS[state.currentLevel];
+      if (lvl.type !== 'keys') return;
+
+      e.preventDefault();
+
+      if (!state.startTime) state.startTime = Date.now();
+      if (e.type !== 'keydown') return;
+
+      const target = state.currentWordObj;
+      let combo = [];
+      
+      if (e.ctrlKey) combo.push('control');
+      if (e.shiftKey && e.key !== 'Shift') combo.push('shift');
+      if (e.altKey && e.key !== 'Alt') combo.push('alt');
+
+      let pressedKey = e.key.toLowerCase();
+      if (pressedKey === ' ') pressedKey = 'space';
+      
+      if (!['control', 'shift', 'alt'].includes(pressedKey)) {
+        combo.push(pressedKey);
+      } else if (combo.length === 0) {
+        combo.push(pressedKey);
+      }
+
+      let pressedStr = combo.join('+');
+      
+      let isMatch = false;
+      for (let match of target.match) {
+        let m = match.toLowerCase();
+        if (m === pressedStr || m === pressedKey || m === e.code.toLowerCase()) {
+            isMatch = true;
+        }
+      }
+
+      if (['control', 'shift', 'alt'].includes(pressedKey) && !isMatch) {
+          return;
+      }
+
+      if (isMatch) {
+        state.correctStrokes++;
+        playTone('hit');
+        state.typedText = '✅ Správně!';
+        render();
+        processCorrectWord();
+      } else {
+        state.wrongStrokes++;
+        playTone('error');
+        state.typedText = '❌ Špatná klávesa';
+        render();
+        penalizePlayer();
+      }
+    };
+
 
     // --- BUTTON A EVENT FUNKCE ---
     function toggleSoundBtn() { 
@@ -283,90 +490,10 @@
       if (state.appMode === 'game') state.hp = 100;
       state.recentHistory = [];
       const firstWord = pickWord(levelId);
-      state.currentWord = firstWord;
-      state.recentHistory.push(firstWord);
+      state.currentWordObj = firstWord;
+      state.currentWord = firstWord.label || firstWord;
+      state.recentHistory.push(state.currentWord);
       state.gameState = 'playing';
-      render();
-    }
-
-    function handleStroke(e) {
-      if (state.gameState !== 'playing') return;
-      const inputVal = e.target.value;
-
-      if (!state.startTime) state.startTime = Date.now();
-
-      if (inputVal.length > state.typedText.length) {
-        const expectedPrefix = state.currentWord.substring(0, inputVal.length);
-        if (inputVal === expectedPrefix) {
-          state.correctStrokes++;
-          playTone('hit');
-        } else {
-          state.wrongStrokes++;
-          playTone('error');
-          if (state.appMode === 'game') {
-            state.hp -= 5;
-            state.hitAnim = true;
-            setTimeout(() => { state.hitAnim = false; render(); }, 300);
-            if (state.hp <= 0) {
-              state.gameState = 'game_over';
-              saveGame();
-              render();
-              return;
-            }
-          }
-        }
-      }
-
-      state.typedText = inputVal;
-
-      if (inputVal === state.currentWord) {
-        setTimeout(() => {
-          state.score++;
-          state.canSkip = true;
-
-          if (state.appMode === 'game') {
-            if (state.isBossFight) {
-              state.isBossFight = false;
-              state.hp = Math.min(100, state.hp + 20);
-              state.exp += 20;
-              state.gold += 50;
-              playTone('levelup');
-            } else {
-              let bGold = state.activePet === 'dog' ? 2 : 0;
-              let bExp = state.activePet === 'dragon' ? 1 : 0;
-              let bHeal = state.activePet === 'cat' ? 3 : 1;
-
-              state.hp = Math.min(100, state.hp + bHeal);
-              state.exp += LEVELS[state.currentLevel].id + bExp;
-              state.gold += state.currentWord.length + bGold;
-              state.healAnim = true;
-              playTone('heal');
-              setTimeout(() => { state.healAnim = false; render(); }, 400);
-            }
-
-            checkLevelUp();
-            state.wordsTypedCounter++;
-            if (state.wordsTypedCounter % 15 === 0 && !state.isBossFight) {
-              state.isBossFight = true;
-              playTone('boss_warn');
-              state.bossTimeLeft = 15;
-              state.typedText = '';
-              state.currentWord = BOSS_TEXTS[Math.floor(Math.random() * BOSS_TEXTS.length)];
-              saveGame();
-              render();
-              return;
-            }
-          }
-
-          state.typedText = '';
-          const nextW = pickWord(state.currentLevel);
-          state.currentWord = nextW;
-          state.recentHistory.push(nextW);
-          if (state.recentHistory.length > 10) state.recentHistory.shift();
-          saveGame();
-          render();
-        }, 200);
-      }
       render();
     }
 
@@ -383,8 +510,9 @@
       if (!state.canSkip || state.isBossFight) return;
       state.skips++; state.canSkip = false; state.typedText = '';
       const nextW = pickWord(state.currentLevel);
-      state.currentWord = nextW;
-      state.recentHistory.push(nextW);
+      state.currentWordObj = nextW;
+      state.currentWord = nextW.label || nextW;
+      state.recentHistory.push(state.currentWord);
       if (state.recentHistory.length > 10) state.recentHistory.shift();
       render();
     }
@@ -421,7 +549,9 @@
           setTimeout(() => { state.hitAnim = false; render(); }, 500);
           state.isBossFight = false;
           state.typedText = '';
-          state.currentWord = pickWord(state.currentLevel);
+          const nextW = pickWord(state.currentLevel);
+          state.currentWordObj = nextW;
+          state.currentWord = nextW.label || nextW;
           if (state.hp <= 0) state.gameState = 'game_over';
         }
         render();
@@ -442,19 +572,7 @@
       const szClass = isSmall ? "w-28 h-28 sm:w-36 sm:h-36 border-4" : "w-48 h-48 md:w-64 md:h-64 border-8";
       const svgScale = isSmall ? "scale(0.85) translate(15, 10)" : "scale(1)";
 
-      let weaponSVG = ""; let accessorySVG = "";
-      let armorSVG = `
-        <path d="M 75 90 L 125 90 L 135 160 Q 100 175 65 160 Z" fill="#b08968" />
-        <path d="M 75 90 L 125 90 L 128 110 Q 100 120 72 110 Z" fill="#ddb892" />
-        <rect x="80" y="135" width="18" height="18" fill="#7f5539" transform="rotate(-5, 87, 142)" />
-        <path d="M 82 135 L 96 152 M 96 135 L 82 152" stroke="#000" stroke-width="1" stroke-opacity="0.6"/>
-        <path d="M 70 125 Q 100 135 130 125 L 132 135 Q 100 145 68 135 Z" fill="#7f4f24" />
-        <rect x="85" y="160" width="12" height="25" fill="#7f5539" />
-        <rect x="103" y="160" width="12" height="25" fill="#7f5539" />
-        <path d="M 78 185 L 97 185 Q 97 175 87 175 Z" fill="#432818" />
-        <path d="M 103 185 L 122 185 Q 122 175 112 175 Z" fill="#432818" />
-      `;
-      let faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" stroke-width="3" fill="none" stroke-linecap="round" />`;
+      let weaponSVG = ""; let accessorySVG = ""; let armorSVG = ""; let faceFeatureSVG = "";
       
       const baseEyes = `
         <ellipse cx="88" cy="65" rx="5" ry="6" fill="#ffffff" /><ellipse cx="112" cy="65" rx="5" ry="6" fill="#ffffff" />
@@ -464,7 +582,31 @@
         <circle cx="110" cy="63" r="1.2" fill="#ffffff" /><circle cx="113" cy="66" r="0.5" fill="#ffffff" />
       `;
 
-      if (level >= 2) {
+      if (level === 1) {
+        armorSVG = `
+          <path d="M 75 90 L 125 90 L 135 160 Q 100 175 65 160 Z" fill="#b08968" />
+          <path d="M 75 90 L 125 90 L 128 110 Q 100 120 72 110 Z" fill="#ddb892" />
+          <rect x="80" y="135" width="18" height="18" fill="#7f5539" transform="rotate(-5, 87, 142)" />
+          <path d="M 82 135 L 96 152 M 96 135 L 82 152" stroke="#000" stroke-width="1" stroke-opacity="0.6"/>
+          <path d="M 70 125 Q 100 135 130 125 L 132 135 Q 100 145 68 135 Z" fill="#7f4f24" />
+          <rect x="85" y="160" width="12" height="25" fill="#7f5539" />
+          <rect x="103" y="160" width="12" height="25" fill="#7f5539" />
+          <path d="M 78 185 L 97 185 Q 97 175 87 175 Z" fill="#432818" />
+          <path d="M 103 185 L 122 185 Q 122 175 112 175 Z" fill="#432818" />
+        `;
+        faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" stroke-width="3" fill="none" stroke-linecap="round" />`;
+        accessorySVG = `
+          <ellipse cx="100" cy="45" rx="48" ry="14" fill="url(#strawHat)" />
+          <path d="M 72 45 Q 100 20 128 45 Q 100 58 72 45 Z" fill="url(#strawHat)" />
+          <path d="M 76 40 Q 100 52 124 40" fill="none" stroke="#e76f51" stroke-width="5" />
+        `;
+        weaponSVG = `
+          <rect x="139" y="30" width="8" height="140" fill="url(#gradWood)" rx="4" />
+          <path d="M 131 40 L 155 40 L 155 55 L 147 55 L 147 47 L 139 47 L 139 55 L 131 55 Z" fill="url(#gradSteel)" />
+          <circle cx="143" cy="115" r="8" fill="url(#skinGrad)" />
+        `;
+      } 
+      else if (level === 2) {
         armorSVG = `
           <path d="M 75 140 L 125 140 L 125 185 L 105 185 L 105 155 L 95 155 L 95 185 L 75 185 Z" fill="#1d3557" />
           <path d="M 75 90 L 125 90 L 132 145 L 68 145 Z" fill="url(#plaid)" />
@@ -479,19 +621,20 @@
           <path d="M 78 58 L 95 63 M 122 58 L 105 63" stroke="#3e2723" stroke-width="5" stroke-linecap="round" />
           <path d="M 72 75 Q 100 130 130 75 Q 115 95 100 95 Q 85 95 72 75 Z" fill="#4e342e" />
         `;
-        accessorySVG = `<path d="M 72 35 Q 100 10 128 35 Q 100 48 72 35 Z" fill="#2a9d8f" />`;
+        accessorySVG = `<path d="M 72 45 Q 100 20 128 45 Q 100 58 72 45 Z" fill="#2a9d8f" />`;
         weaponSVG = `
           <rect x="133" y="40" width="12" height="120" fill="url(#gradWood)" rx="5" />
           <path d="M 120 55 L 158 55 L 175 80 L 175 105 L 158 130 L 120 130 Z" fill="url(#gradSteel)" />
           <circle cx="139" cy="120" r="9" fill="url(#skinGrad)" />
         `;
       }
-      if (level >= 3) {
+      else if (level === 3) {
         armorSVG = `
           <path d="M 73 90 L 127 90 L 130 155 L 70 155 Z" fill="url(#chainmail)" />
           <path d="M 78 90 L 122 90 L 118 135 Q 100 148 82 135 Z" fill="url(#gradSteel)" stroke="#6c757d" stroke-width="3" />
           <rect x="73" y="125" width="54" height="14" fill="#111" />
         `;
+        faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" stroke-width="3" fill="none" stroke-linecap="round" />`;
         accessorySVG = `
           <path d="M 66 65 Q 100 15 134 65 L 134 82 Q 100 95 66 82 Z" fill="url(#gradSteel)" />
           <path d="M 75 65 L 125 65 L 115 82 L 85 82 Z" fill="#212529" />
@@ -502,11 +645,12 @@
           <circle cx="145" cy="120" r="9" fill="url(#gradSteel)" />
         `;
       }
-      if (level >= 4) {
+      else if (level === 4) {
         armorSVG = `
           <path d="M 68 90 L 132 90 L 138 145 L 100 168 L 62 145 Z" fill="url(#gradSteel)" />
           <path d="M 80 90 L 120 90 L 115 135 L 100 152 L 85 135 Z" fill="url(#gradGold)" />
         `;
+        faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" stroke-width="3" fill="none" stroke-linecap="round" />`;
         accessorySVG = `
           <path d="M 65 60 Q 100 5 135 60 L 128 85 L 72 85 Z" fill="url(#gradSteel)" />
           <path d="M 100 10 Q 125 -15 150 15 Q 135 35 100 15 Z" fill="url(#capeGradRed)" />
@@ -518,22 +662,24 @@
           <circle cx="141" cy="160" r="10" fill="url(#gradSteel)" />
         `;
       }
-      if (level >= 5) {
+      else if (level === 5) {
         armorSVG = `
           <path d="M 72 90 L 128 90 L 122 165 L 78 165 Z" fill="#0b090a" />
           <rect x="72" y="132" width="56" height="14" fill="#d90429" />
         `;
+        faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" stroke-width="3" fill="none" stroke-linecap="round" />`;
         accessorySVG = `<path d="M 75 50 Q 20 60 10 110 Q 35 85 75 65 Z" fill="#d90429" />`;
         weaponSVG = `
           <path d="M 135 135 Q 165 85 175 30 L 167 25 Q 152 80 130 125 Z" fill="url(#gradBlade)" />
           <circle cx="132" cy="130" r="8" fill="url(#skinGrad)" />
         `;
       }
-      if (level >= 6) {
+      else if (level === 6) {
         armorSVG = `
           <path d="M 70 90 L 130 90 L 150 190 L 50 190 Z" fill="url(#robeGradBlue)" />
           <rect x="75" y="130" width="50" height="12" fill="url(#gradGold)" />
         `;
+        faceFeatureSVG = `<path d="M 72 75 Q 100 170 128 75 Q 112 98 100 98 Q 88 98 72 75 Z" fill="#e9ecef" />`;
         accessorySVG = `
           <ellipse cx="100" cy="55" rx="45" ry="12" fill="#10002b" />
           <path d="M 75 55 Q 85 0 130 -10 Q 110 20 125 55 Z" fill="url(#robeGradBlue)" />
@@ -544,14 +690,19 @@
           <circle cx="149" cy="125" r="8" fill="url(#skinGrad)" />
         `;
       }
-      if (level >= 7) {
+      else if (level === 7) {
         armorSVG = `
           <path d="M 62 90 L 138 90 L 132 155 Q 100 175 68 155 Z" fill="url(#gradSteel)" />
           <path d="M 75 90 L 125 90 L 120 145 Q 100 160 80 145 Z" fill="#ffffff" />
+          <path d="M 100 100 L 115 118 L 100 135 L 85 118 Z" fill="url(#gradGold)" />
+          <path d="M 100 105 L 110 118 L 100 130 L 90 118 Z" fill="#fff" />
         `;
+        faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" stroke-width="3" fill="none" stroke-linecap="round" />`;
         accessorySVG = `
           <path d="M 66 60 Q 100 5 134 60 L 128 80 L 72 80 Z" fill="url(#gradSteel)" />
           <path d="M 72 60 Q 40 20 10 30 Q 40 65 68 75 Z" fill="url(#gradGold)" />
+          <path d="M 128 60 Q 160 20 190 30 Q 160 65 132 75 Z" fill="url(#gradGold)" />
+          <path d="M 100 20 L 100 50 M 88 35 L 112 35" stroke="url(#gradGold)" stroke-width="6" stroke-linecap="round" />
         `;
         weaponSVG = `
           <rect x="136" y="50" width="10" height="100" fill="#212529" />
@@ -559,31 +710,54 @@
           <circle cx="141" cy="140" r="11" fill="url(#gradSteel)" />
         `;
       }
-      if (level >= 8) {
+      else if (level === 8) {
         armorSVG = `
           <path d="M 62 90 L 138 90 L 132 155 Q 100 175 68 155 Z" fill="url(#dragonScales)" />
+        `;
+        faceFeatureSVG = `
+          <path d="M 78 52 L 95 78 M 74 58 L 91 84" stroke="#9d0208" stroke-width="2.5" stroke-linecap="round" />
         `;
         accessorySVG = `
           <path d="M 66 65 Q 100 15 134 65 L 128 82 L 72 82 Z" fill="#0b090a" />
           <path d="M 72 50 Q 40 0 20 5 Q 45 35 66 65 Z" fill="#e9ecef" />
+          <path d="M 128 50 Q 160 0 180 5 Q 155 35 134 65 Z" fill="#e9ecef" />
+          <path d="M 88 65 L 112 65 M 100 65 L 100 82" stroke="#d00000" stroke-width="5" />
         `;
         weaponSVG = `
           <path d="M 128 75 Q 140 0 152 75 L 146 155 L 134 155 Z" fill="url(#gradSteel)" />
           <circle cx="140" cy="140" r="11" fill="#0b090a" />
         `;
       }
-      if (level >= 9) {
-        armorSVG = `<path d="M 62 90 L 138 90 L 132 155 L 68 155 Z" fill="url(#cyberCircuit)" />`;
+      else if (level === 9) {
+        armorSVG = `
+          <rect x="83" y="150" width="16" height="38" fill="url(#cyberCircuit)" />
+          <rect x="101" y="150" width="16" height="38" fill="url(#cyberCircuit)" />
+          <path d="M 62 90 L 138 90 L 132 155 L 68 155 Z" fill="url(#cyberCircuit)" />
+          <path d="M 80 90 L 100 135 L 120 90 M 65 145 L 135 145" stroke="#00ffff" stroke-width="3" fill="none" />
+          <circle cx="100" cy="115" r="10" fill="#00ffff" />
+          <circle cx="100" cy="115" r="4" fill="#ffffff" />
+        `;
+        faceFeatureSVG = `
+          <rect x="104" y="58" width="16" height="14" fill="#0b090a" rx="2" />
+          <circle cx="112" cy="65" r="5" fill="#ff0000" />
+          <rect x="106" y="64" width="12" height="2" fill="#ffffff" />
+          <path d="M 112 55 L 112 75 M 102 65 L 122 65" stroke="#00ffff" stroke-width="1" opacity="0.7" />
+        `;
+        accessorySVG = `
+          <path d="M 95 40 L 140 40 L 140 85 L 128 85 L 128 52 L 95 52 Z" fill="url(#gradSteel)" />
+          <circle cx="134" cy="46" r="3" fill="#00ffff" />
+        `;
         weaponSVG = `
           <rect x="135" y="0" width="10" height="135" fill="#00ffff" />
           <rect x="131" y="135" width="18" height="35" fill="url(#gradSteel)" rx="3" />
         `;
       }
-      if (level >= 10) {
+      else if (level >= 10) {
         armorSVG = `
           <path d="M 65 90 L 135 90 L 140 185 L 60 185 Z" fill="#ffffff" />
           <path d="M 75 90 L 125 90 L 100 135 Z" fill="url(#gradGold)" opacity="0.8" />
         `;
+        faceFeatureSVG = `<path d="M 90 82 Q 100 92 110 82" stroke="#9c6644" stroke-width="3" fill="none" stroke-linecap="round" />`;
         accessorySVG = `<ellipse cx="100" cy="15" rx="45" ry="12" fill="none" stroke="url(#gradGold)" stroke-width="6" />`;
         weaponSVG = `
           <rect x="135" y="35" width="12" height="120" fill="url(#gradGold)" rx="6" />
@@ -601,22 +775,14 @@
             <defs>
               <linearGradient id="gradSteel" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="25%" stop-color="#ced4da"/><stop offset="50%" stop-color="#868e96"/><stop offset="80%" stop-color="#495057"/><stop offset="100%" stop-color="#212529"/></linearGradient>
               <linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fff3cd"/><stop offset="20%" stop-color="#ffea00"/><stop offset="50%" stop-color="#f5b700"/><stop offset="80%" stop-color="#d08c00"/><stop offset="100%" stop-color="#995800"/></linearGradient>
-              <linearGradient id="gradBlade" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#e9ecef"/><stop offset="30%" stop-color="#ffffff"/><stop offset="60%" stop-color="#dee2e6"/><stop offset="100%" stop-color="#adb5bd"/></linearGradient>
               <linearGradient id="gradWood" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#7f4f24"/><stop offset="50%" stop-color="#b08968"/><stop offset="100%" stop-color="#432818"/></linearGradient>
               <linearGradient id="gradCyber" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4a4e69"/><stop offset="40%" stop-color="#22223b"/><stop offset="100%" stop-color="#0b090a"/></linearGradient>
-              <radialGradient id="fireGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffea00" stop-opacity="1"/><stop offset="30%" stop-color="#ff7b00" stop-opacity="0.9"/><stop offset="70%" stop-color="#d00000" stop-opacity="0.4"/><stop offset="100%" stop-color="#370617" stop-opacity="0"/></radialGradient>
-              <radialGradient id="neonCyan" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#e0ffff" stop-opacity="1"/><stop offset="30%" stop-color="#00ffff" stop-opacity="0.8"/><stop offset="70%" stop-color="#0077b6" stop-opacity="0.4"/><stop offset="100%" stop-color="#03045e" stop-opacity="0"/></radialGradient>
-              <radialGradient id="godAura" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="25%" stop-color="#fff3cd" stop-opacity="0.9"/><stop offset="60%" stop-color="#f5b700" stop-opacity="0.4"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
-              <radialGradient id="glowMagic" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="1"/><stop offset="30%" stop-color="#00f5d4" stop-opacity="0.8"/><stop offset="70%" stop-color="#9b5de5" stop-opacity="0.4"/><stop offset="100%" stop-color="#000000" stop-opacity="0"/></radialGradient>
               <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffe5d9"/><stop offset="60%" stop-color="#ffcad4"/><stop offset="100%" stop-color="#f4acb7"/></linearGradient>
-              <linearGradient id="capeGradRed" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff4d6d"/><stop offset="50%" stop-color="#c9184a"/><stop offset="100%" stop-color="#590d22"/></linearGradient>
-              <linearGradient id="robeGradBlue" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#5a189a"/><stop offset="50%" stop-color="#3c096c"/><stop offset="100%" stop-color="#10002b"/></linearGradient>
               <pattern id="strawHat" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#e9c46a"/><path d="M 0 4 Q 4 -2 8 4 Q 4 10 0 4 Z" fill="#f4a261" stroke="#e76f51" stroke-width="0.5"/></pattern>
               <pattern id="plaid" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#c1121f"/><path d="M 0 8 L 16 8 M 8 0 L 8 16" stroke="#780000" stroke-width="4" opacity="0.8"/><path d="M 0 4 L 16 4 M 4 0 L 4 16" stroke="#fff" stroke-width="1" opacity="0.4"/></pattern>
               <pattern id="chainmail" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#495057"/><circle cx="4" cy="4" r="3" fill="none" stroke="#ced4da" stroke-width="1.5"/><circle cx="0" cy="0" r="3" fill="none" stroke="#6c757d" stroke-width="1"/></pattern>
               <pattern id="dragonScales" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#370617"/><path d="M 0 7 Q 7 -3 14 7 Q 7 17 0 7 Z" fill="#9d0208" stroke="#dc2f02" stroke-width="1.5"/><circle cx="7" cy="5" r="1.5" fill="#ffba08" opacity="0.3"/></pattern>
               <pattern id="cyberCircuit" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="url(#gradCyber)"/><path d="M 10 0 L 10 20 M 0 10 L 20 10" stroke="#00ffff" stroke-width="0.5" opacity="0.3"/><circle cx="10" cy="10" r="1" fill="#00ffff"/></pattern>
-              <filter id="ultraShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="2" dy="10" stdDeviation="8" flood-color="#000" flood-opacity="0.6"/></filter>
             </defs>
             <g class="${animClass}">
               <rect x="85" y="150" width="12" height="35" fill="#343a40" /><rect x="103" y="150" width="12" height="35" fill="#343a40" />
@@ -678,9 +844,11 @@
       else if (state.gameState === 'level_select') {
         let cards = "";
         Object.values(LEVELS).forEach(lvl => {
+          let extraClass = lvl.type === 'keys' ? 'bg-orange-50 border-orange-200 hover:border-orange-400' : 'bg-gray-50 border-gray-200 hover:border-indigo-400';
+          
           cards += `
-            <button onclick="startLevel(${lvl.id});" class="flex flex-col items-center p-6 bg-gray-50 hover:bg-indigo-100 border-2 border-gray-200 hover:border-indigo-400 rounded-2xl transition-all shadow-sm hover:shadow-lg text-center transform hover:-translate-y-1 relative overflow-hidden cursor-pointer">
-              ${state.appMode === 'game' ? `<div class="absolute top-0 right-0 bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-bl-xl shadow-sm">${lvl.id} EXP</div>` : ''}
+            <button onclick="startLevel('${lvl.id}');" class="flex flex-col items-center p-6 ${extraClass} hover:bg-indigo-100 border-2 rounded-2xl transition-all shadow-sm hover:shadow-lg text-center transform hover:-translate-y-1 relative overflow-hidden cursor-pointer">
+              ${state.appMode === 'game' ? `<div class="absolute top-0 right-0 bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-bl-xl shadow-sm">${lvl.expReward} EXP</div>` : ''}
               <span class="text-2xl font-bold text-gray-800 mb-2 mt-4">${lvl.name}</span>
               <span class="text-sm text-gray-600 leading-tight">${lvl.description}</span>
             </button>
@@ -690,8 +858,8 @@
           <div class="max-w-6xl mx-auto bg-white rounded-3xl shadow-xl p-8 text-center border-4 border-indigo-200 relative">
             <button onclick="goState('mode_select');" class="absolute top-6 left-6 text-indigo-500 font-bold hover:bg-indigo-100 p-3 rounded-xl transition-colors">← Zpět</button>
             <h1 class="text-4xl md:text-5xl font-extrabold text-indigo-600 mb-4 tracking-tight mt-12 md:mt-0">${state.appMode === 'game' ? '🌍 Mapa Dobrodružství' : '📚 Tréninkové Lekce'}</h1>
-            <p class="text-xl text-gray-500 mb-10">Vyber si obtížnost textu k psaní.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${cards}</div>
+            <p class="text-xl text-gray-500 mb-10">Vyber si úroveň. Nově můžeš trénovat i speciální klávesy!</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">${cards}</div>
           </div>
         `;
       }
@@ -751,42 +919,63 @@
       }
 
       else if (state.gameState === 'playing') {
-        const expectedPrefix = state.currentWord.substring(0, state.typedText.length);
-        const wrongText = state.typedText !== expectedPrefix;
         const currentCpm = state.elapsedSeconds > 0 ? Math.round((state.correctStrokes / state.elapsedSeconds) * 60) : 0;
         const totalStrokes = state.correctStrokes + state.wrongStrokes;
         const accuracy = totalStrokes > 0 ? Math.round((state.correctStrokes / totalStrokes) * 100) : 100;
+        
+        const lvl = LEVELS[state.currentLevel];
+        const isKeyMode = lvl.type === 'keys';
 
+        // Logika pro běžné vypsání textu (Módy 1-6)
         let lettersHtml = "";
-        state.currentWord.split('').forEach((char, index) => {
-          let col = "text-gray-700"; let bg = "";
-          if (index < state.typedText.length) {
-            if (state.typedText[index] === char) col = "text-green-500 font-bold";
-            else { col = "text-red-500 font-bold"; bg = "bg-red-100 rounded-sm"; }
-          }
-          if (char === ' ') lettersHtml += `<span class="inline-block w-4 mx-1 ${bg}">&nbsp;</span>`;
-          else lettersHtml += `<span class="inline-block ${col} ${bg}">${char}</span>`;
-        });
-
-        const expectedChar = state.currentWord[state.typedText.length];
-        const hintData = expectedChar ? getHintForChar(expectedChar) : null;
         let hintHtml = "";
-        if (state.showHint && hintData) {
-          let keysMarkup = "";
-          hintData.forEach((combo, comboIdx) => {
-            if (comboIdx > 0) keysMarkup += `<span class="text-gray-400 font-black mx-4 text-xl">NEBO</span>`;
-            combo.forEach((key, keyIdx) => {
-              if (keyIdx > 0 && key !== 'poté') keysMarkup += `<span class="text-blue-400 font-black text-3xl">+</span>`;
-              if (key === 'poté') keysMarkup += `<span class="text-gray-500 font-black mx-3 uppercase tracking-widest text-lg">potom</span>`;
-              else keysMarkup += `<kbd class="px-5 py-3 bg-white border-2 border-b-8 border-gray-300 rounded-2xl font-black text-gray-800 text-2xl shadow-sm">${key}</kbd>`;
-            });
+
+        if (!isKeyMode) {
+          const expectedPrefix = state.currentWord.substring(0, state.typedText.length);
+          const wrongText = state.typedText !== expectedPrefix;
+
+          state.currentWord.split('').forEach((char, index) => {
+            let col = "text-gray-700"; let bg = "";
+            if (index < state.typedText.length) {
+              if (state.typedText[index] === char) col = "text-green-500 font-bold";
+              else { col = "text-red-500 font-bold"; bg = "bg-red-100 rounded-sm"; }
+            }
+            if (char === ' ') lettersHtml += `<span class="inline-block w-4 mx-1 ${bg}">&nbsp;</span>`;
+            else lettersHtml += `<span class="inline-block ${col} ${bg}">${char}</span>`;
           });
-          hintHtml = `
-            <div class="mt-10 max-w-3xl mx-auto border-4 rounded-3xl p-8 text-left shadow-inner ${state.isBossFight ? 'bg-red-50 border-red-300' : 'bg-blue-50 border-blue-200'}">
-              <div class="text-2xl text-gray-700 text-center mb-6">Pro napsání znaku <strong class="text-4xl bg-white px-4 py-2 rounded-xl border-4 mx-3 shadow-sm ${state.isBossFight ? 'text-red-600 border-red-300' : 'text-blue-600 border-blue-300'}">${expectedChar === ' ' ? 'MEZERA' : expectedChar}</strong> zmáčkni:</div>
-              <div class="flex flex-col gap-6 items-center justify-center">${keysMarkup}</div>
-            </div>
-          `;
+
+          const expectedChar = state.currentWord[state.typedText.length];
+          const hintData = expectedChar ? getHintForChar(expectedChar) : null;
+          
+          if (state.showHint && hintData) {
+            let keysMarkup = "";
+            hintData.forEach((combo, comboIdx) => {
+              if (comboIdx > 0) keysMarkup += `<span class="text-gray-400 font-black mx-4 text-xl">NEBO</span>`;
+              combo.forEach((key, keyIdx) => {
+                if (keyIdx > 0 && key !== 'poté') keysMarkup += `<span class="text-blue-400 font-black text-3xl">+</span>`;
+                if (key === 'poté') keysMarkup += `<span class="text-gray-500 font-black mx-3 uppercase tracking-widest text-lg">potom</span>`;
+                else keysMarkup += `<kbd class="px-5 py-3 bg-white border-2 border-b-8 border-gray-300 rounded-2xl font-black text-gray-800 text-2xl shadow-sm">${key}</kbd>`;
+              });
+            });
+
+            // VÝPOČET FÉROVÉHO EXP SNÍŽENÍ PŘI NÁPOVĚDĚ
+            let standardReward = lvl.expReward;
+            let cutReward = Math.max(0, Math.floor(standardReward / 2));
+            let expWarningText = (standardReward > 0) 
+              ? `<div class="text-orange-500 font-bold text-center text-sm mt-4">⚠️ Použitím nápovědy získáš jen ${cutReward} EXP místo ${standardReward} EXP za slovo!</div>`
+              : "";
+
+            hintHtml = `
+              <div class="mt-10 max-w-3xl mx-auto border-4 rounded-3xl p-8 text-left shadow-inner ${state.isBossFight ? 'bg-red-50 border-red-300' : 'bg-blue-50 border-blue-200'}">
+                <div class="text-2xl text-gray-700 text-center mb-6">Pro napsání znaku <strong class="text-4xl bg-white px-4 py-2 rounded-xl border-4 mx-3 shadow-sm ${state.isBossFight ? 'text-red-600 border-red-300' : 'text-blue-600 border-blue-300'}">${expectedChar === ' ' ? 'MEZERA' : expectedChar}</strong> zmáčkni:</div>
+                <div class="flex flex-col gap-6 items-center justify-center">${keysMarkup}</div>
+                ${expWarningText}
+              </div>
+            `;
+          }
+        } else {
+          // Zobrazení pro Klávesový mód (Módy 7 a 8)
+          lettersHtml = `<span class="text-indigo-700 font-black text-4xl md:text-6xl">${state.currentWordObj.desc}</span>`;
         }
 
         root.innerHTML = `
@@ -829,11 +1018,21 @@
             </div>
 
             <div class="${state.isBossFight ? 'bg-red-50 border-red-400' : 'bg-white'} border-4 rounded-3xl p-8 text-center relative">
-              <button onclick="state.showHint=!state.showHint; render();" class="absolute top-4 right-4 bg-blue-100 hover:bg-blue-200 font-bold px-4 py-2 rounded-full text-blue-700">💡 Pomoc</button>
-              <div class="text-gray-400 font-bold uppercase tracking-widest mb-4">Napiš přesně tento text:</div>
+              ${!isKeyMode ? `<button onclick="state.showHint=!state.showHint; render();" class="absolute top-4 right-4 bg-blue-100 hover:bg-blue-200 font-bold px-4 py-2 rounded-full text-blue-700">💡 Pomoc</button>` : ''}
+              
+              <div class="text-gray-400 font-bold uppercase tracking-widest mb-4">${isKeyMode ? 'Zkouška ovládání:' : 'Napiš přesně tento text:'}</div>
               <div class="text-4xl sm:text-5xl md:text-6xl font-black mb-10 tracking-wide break-all">${lettersHtml}</div>
+              
               <div class="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
-                <input id="wordInput" type="text" oninput="handleStroke(event)" value="${state.typedText}" class="flex-grow text-center text-3xl font-bold p-4 bg-gray-50 border-4 rounded-2xl outline-none ${state.isBossFight ? 'border-red-400 text-red-900' : 'border-gray-300'}" placeholder="${state.startTime ? 'Piš...' : 'Klikni a začni psát...'}" autofocus autocomplete="off" spellcheck="false" />
+                <input id="wordInput" type="text" 
+                  ${isKeyMode ? 'readonly' : ''}
+                  onkeydown="${isKeyMode ? 'handleKeyMode(event)' : ''}" 
+                  oninput="${!isKeyMode ? 'handleStroke(event)' : ''}" 
+                  value="${state.typedText}" 
+                  class="flex-grow text-center text-3xl font-bold p-4 bg-gray-50 border-4 rounded-2xl outline-none ${state.isBossFight ? 'border-red-400 text-red-900' : 'border-gray-300'}" 
+                  placeholder="${isKeyMode ? 'Stiskni požadovanou klávesu...' : (state.startTime ? 'Piš...' : 'Klikni a začni psát...')}" 
+                  autofocus autocomplete="off" spellcheck="false" 
+                />
                 <button onclick="skipWord();" ${state.isBossFight || !state.canSkip ? 'disabled' : ''} class="px-6 py-4 bg-orange-400 hover:bg-orange-500 text-white font-black text-xl rounded-2xl disabled:opacity-40">⏭️ Přeskočit</button>
               </div>
               ${hintHtml}
@@ -845,7 +1044,9 @@
           const input = document.getElementById('wordInput');
           if (input) {
             input.focus();
-            input.setSelectionRange(state.typedText.length, state.typedText.length);
+            if (!isKeyMode) {
+                input.setSelectionRange(state.typedText.length, state.typedText.length);
+            }
           }
         }, 0);
       }
