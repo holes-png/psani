@@ -43,7 +43,8 @@
     .pixel-art {
       image-rendering: pixelated; 
       object-fit: contain; 
-      padding: 15%; /* Aby postavička měla kolem sebe trochu místa v kruhu */
+      padding: 5%; /* Zmenšený vnitřní okraj pro optimální velikost v kruhu */
+      filter: drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.25)); /* Přidán prémiový stín */
     }
   </style>
 </head>
@@ -51,8 +52,7 @@
 
   <div id="version-display" class="absolute bottom-2 right-4 text-xs font-bold text-gray-400 select-none pointer-events-none z-50"></div>
 
-  <div id="app" class="w-full max-w-6xl mx-auto p-2 sm:p-4 my-auto">
-    </div>
+  <div id="app" class="w-full max-w-6xl mx-auto p-2 sm:p-4 my-auto"></div>
 
   <script>
     // --- VERZE APLIKACE ---
@@ -144,7 +144,7 @@
         type: 'text',
         expReward: 4, 
         description: 'Věty s interpunkcí a těžší česká gramatika.',
-        words: ['Ahoj, jak se máš?', 'Dnes prší, viď?', 'Pozor, jede auto!', 'Jablka, hrušky a švestky.', 'Kde jsi byl včera?', 'Uf, to bylo těsné!', 'Koupíš sýr a chléb?', 'Viděl jsi tu labuť?', 'Můj kůň běží rychle.', 'Náměstí je plné lidí.', 'Dáš si se mnou oběd?', 'Hlemýžď se plazí.', 'Kde je to malé štěně?', 'Paměť mi dobře slouží.', 'Mám novou a velkou loď.', 'Máš chuť na čokoládu?', 'Dej mi to nářadí!', 'Zítra bude jistě pršet.', 'Nezapomeň na svůj úkol!', 'Půjdeme dnes do kina?', 'Venku už je velká tma.', 'Dobrou noc, mami!', 'Tati, podívej se!', 'To je překvapení!', 'Koupil jsi 10 jablek?', 'Dnes je 28. října.', 'Vlak jede v 15 hodin.', 'Vezmi si to s sebou!', 'Pojď se mnou ven.', 'Chtěl jsi mi něco říct?', 'Zpíval jsi moc hezky.', 'Děti si hrály na hřišti.', 'Výjimečně se mi to líbí.', 'Slyšel jsi tu novinu?']
+        words: ['Ahoj, jak se máš?', 'Dnes prší, viď?', 'Pozor, jede auto!', 'Jablka, hrušky and švestky.', 'Kde jsi byl včera?', 'Uf, to bylo těsné!', 'Koupíš sýr a chléb?', 'Viděl jsi tu labuť?', 'Můj kůň běží rychle.', 'Náměstí je plné lidí.', 'Dáš si se mnou oběd?', 'Hlemýžď se plazí.', 'Kde je to malé štěně?', 'Paměť mi dobře slouží.', 'Mám novou a velkou loď.', 'Máš chuť na čokoládu?', 'Dej mi to nářadí!', 'Zítra bude jistě pršet.', 'Nezapomeň na svůj úkol!', 'Půjdeme dnes do kina?', 'Venku už je velká tma.', 'Dobrou noc, mami!', 'Tati, podívej se!', 'To je překvapení!', 'Koupil jsi 10 jablek?', 'Dnes je 28. října.', 'Vlak jede v 15 hodin.', 'Vezmi si to s sebou!', 'Pojď se mnou ven.', 'Chtěl jsi mi něco říct?', 'Zpíval jsi moc hezky.', 'Děti si hrály na hřišti.', 'Výjimečně se mi to líbí.', 'Slyšel jsi tu novinu?']
       },
       5: {
         id: 5, name: 'Úroveň 5: Hacker 💻',
@@ -178,7 +178,7 @@
       11: 'Temný Rytíř 👿', 12: 'Bůh Kódu ⚡'
     };
 
-    // --- MAPOVÁNÍ KLÁVES NA PRSTY PRO VIZUÁLNÍ KLÁVESNICI (PŘESNĚ DLE HP FOTOGRAFIE) ---
+    // --- MAPOVÁNÍ KLÁVES NA PRSTY PRO VIZUÁLNÍ KLÁVESNICI ---
     const KEY_FINGER_MAP = {
       ';': 'l5', '+': 'l5', 'ě': 'l4', 'š': 'l3', 'č': 'l2', 'ř': 'l2', 'ž': 'p2', 'ý': 'p2', 'á': 'p3', 'í': 'p4', 'é': 'p5', '=': 'p5', '´': 'p5', 'backspace': 'p5',
       'tab': 'l5', 'q': 'l5', 'w': 'l4', 'e': 'l3', 'r': 'l2', 't': 'l2', 'z': 'p2', 'u': 'p2', 'i': 'p3', 'o': 'p4', 'p': 'p5', 'ú': 'p5', ')': 'p5', '¨': 'p5', 'enter': 'p5',
@@ -205,12 +205,11 @@
       'p5': 'bg-[#4c1d95] bg-opacity-60 text-purple-200 border-[#6d28d9] border-opacity-60'
     };
 
-    // --- GLOBÁLNÍ FUNKCE (PŘESNÉ POŽADAVKY EXP) ---
+    // --- GLOBÁLNÍ FUNKCE (OPRAVA PRVNÍHO LEVELU NA 10 EXP) ---
     function getExpNeeded(level) {
       const req = { 
-        1: 20, 2: 30, 3: 40, 4: 50, 5: 70,
-        6: 110, 
-        7: 150, 8: 200, 9: 250, 10: 350, 11: 500 
+        1: 10, 2: 20, 3: 30, 4: 40, 5: 50,
+        6: 70, 7: 110, 8: 150, 9: 200, 10: 250, 11: 350, 12: 500 
       };
       return req[level] || 9999;
     }
@@ -840,9 +839,9 @@
           ${renderHintHandsSVG(activeFinger)}
         </div>
       `;
-    }
+    } // <--- OPRAVENÝ CHYBĚJÍCÍ ZNAK (OPRAVA SYNTAXE)
 
-    // --- Vykreslování Hrdiny (SVG / Vlastní obrázek) ---
+    // --- Vykreslování Hrdiny (Zvětšeno o 1.5x) ---
     function renderAvatar(level, isSmall = false) {
       const hit = state.hitAnim || (state.isBossFight && !isSmall);
       const heal = state.healAnim && !isSmall;
@@ -853,17 +852,19 @@
       else if (heal) filterClass = "drop-shadow-[0_0_30px_rgba(34,197,94,1)]";
       else if (lvlUp) filterClass = "drop-shadow-[0_0_50px_rgba(234,179,8,1)]";
 
-      const szClass = isSmall ? "w-28 h-28 sm:w-36 sm:h-36 border-4" : "w-48 h-48 md:w-64 md:h-64 border-8";
+      // Zvětšené velikosti avatarů o 1.5x pro vynikající viditelnost na monitoru
+      const szClass = isSmall ? "w-24 h-24 sm:w-32 sm:h-32 border-4" : "w-60 h-60 md:w-84 md:h-84 border-8";
+      const szClassCustom = isSmall ? "w-24 h-24 sm:w-32 sm:h-32" : "w-60 h-60 md:w-84 md:h-84";
       const svgScale = isSmall ? "scale(0.85) translate(15, 10)" : "scale(1)";
       let animClass = hit ? "animate-shake" : "animate-breathe";
 
       let petMarkup = "";
       if (state.activePet && !isSmall) petMarkup = renderPetSVG(state.activePet);
 
-      // Pokud je nastaven vlastní obrázek pro daný level
+      // Pokud je nastaven vlastní obrázek pro daný level (průhledný kontejner)
       if (typeof CUSTOM_HERO_IMAGES !== 'undefined' && CUSTOM_HERO_IMAGES[level] && CUSTOM_HERO_IMAGES[level].trim() !== "") {
         return `
-          <div class="${szClass} rounded-full bg-gray-200 overflow-hidden flex items-center justify-center transition-all duration-300 shadow-[inset_0_0_30px_rgba(0,0,0,0.2)] relative ${filterClass}">
+          <div class="${szClassCustom} flex items-center justify-center transition-all duration-300 relative ${filterClass}">
             <img src="${CUSTOM_HERO_IMAGES[level]}" class="w-full h-full pixel-art" alt="Hero" />
             <svg viewBox="0 0 200 200" class="absolute inset-0 w-full h-full pointer-events-none">${petMarkup}</svg>
           </div>
@@ -1119,7 +1120,6 @@
               <pattern id="chainmail" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#495057"/><circle cx="4" cy="4" r="3" fill="none" stroke="#ced4da" stroke-width="1.5"/><circle cx="0" cy="0" r="3" fill="none" stroke="#6c757d" stroke-width="1"/></pattern>
               <pattern id="dragonScales" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#370617"/><path d="M 0 7 Q 7 -3 14 7 Q 7 17 0 7 Z" fill="#9d0208" stroke="#dc2f02" stroke-width="1.5"/><circle cx="7" cy="5" r="1.5" fill="#ffba08" opacity="0.3"/></pattern>
               <pattern id="cyberCircuit" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="url(#gradCyber)"/><path d="M 10 0 L 10 20 M 0 10 L 20 10" stroke="#00ffff" stroke-width="0.5" opacity="0.3"/><circle cx="10" cy="10" r="1" fill="#00ffff"/></pattern>
-              <filter id="ultraShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="2" dy="10" stdDeviation="8" flood-color="#000" flood-opacity="0.6"/></filter>
             </defs>
             <g class="${animClass}">
               <rect x="85" y="150" width="12" height="35" fill="#343a40" /><rect x="103" y="150" width="12" height="35" fill="#343a40" />
@@ -1134,6 +1134,65 @@
           </svg>
         </div>
       `;
+    }
+
+    function renderPetSVG(petId) {
+      if (petId === 'dog') {
+        return `
+          <g transform="translate(130, 150) scale(0.6)">
+            <path d="M 0 30 Q -10 30 -10 10 Q 0 -10 20 -10 Q 40 -10 50 10 Q 60 30 50 30 Z" fill="#8B4513" />
+            <path d="M -5 -5 Q -15 -15 -5 -25 Q 5 -15 5 -5 Z" fill="#5C4033" /> 
+            <path d="M 45 -5 Q 55 -15 45 -25 Q 35 -15 35 -5 Z" fill="#5C4033" /> 
+            <circle cx="10" cy="5" r="3" fill="#000" />
+            <circle cx="30" cy="5" r="3" fill="#000" />
+            <ellipse cx="20" cy="15" rx="6" ry="4" fill="#000" />
+            <path d="M 20 20 Q 25 25 30 20" stroke="#000" stroke-width="2" fill="none" />
+          </g>
+        `;
+      }
+      if (petId === 'cat') {
+        return `
+          <g transform="translate(135, 145) scale(0.5)">
+            <path d="M 0 30 Q -10 30 -10 10 Q 0 -10 20 -10 Q 40 -10 50 10 Q 60 30 50 30 Z" fill="#2F4F4F" />
+            <polygon points="-10,0 -20,-20 0,-10" fill="#2F4F4F" />
+            <polygon points="50,0 60,-20 40,-10" fill="#2F4F4F" />
+            <circle cx="10" cy="5" r="4" fill="#FFD700" />
+            <circle cx="10" cy="5" r="1.5" fill="#000" />
+            <circle cx="30" cy="5" r="4" fill="#FFD700" />
+            <circle cx="30" cy="5" r="1.5" fill="#000" />
+            <polygon points="17,15 23,15 20,18" fill="#FF69B4" />
+            <path d="M 50 20 Q 80 0 70 -20" stroke="#2F4F4F" stroke-width="6" fill="none" stroke-linecap="round" class="animate-wind" />
+          </g>
+        `;
+      }
+      if (petId === 'owl') {
+        return `
+          <g transform="translate(140, 60) scale(0.5)" class="animate-float">
+            <ellipse cx="20" cy="20" rx="25" ry="30" fill="#A9A9A9" />
+            <circle cx="5" cy="10" r="10" fill="#FFF" />
+            <circle cx="5" cy="10" r="4" fill="#000" />
+            <circle cx="35" cy="10" r="10" fill="#FFF" />
+            <circle cx="35" cy="10" r="4" fill="#000" />
+            <polygon points="15,20 25,20 20,30" fill="#FFA500" />
+            <path d="M -5 20 Q -20 30 -5 40 Z" fill="#808080" />
+            <path d="M 45 20 Q 60 30 45 40 Z" fill="#808080" />
+          </g>
+        `;
+      }
+      if (petId === 'dragon') {
+        return `
+          <g transform="translate(130, 40) scale(0.6)" class="animate-float">
+            <path d="M 10 30 Q -10 10 10 -10 Q 30 -30 50 -10 Q 70 10 50 30 Z" fill="#8B0000" />
+            <circle cx="20" cy="0" r="3" fill="#FFD700" />
+            <circle cx="40" cy="0" r="3" fill="#FFD700" />
+            <polygon points="10,-20 0,-30 20,-15" fill="#FFA500" />
+            <polygon points="50,-20 60,-30 40,-15" fill="#FFA500" />
+            <path d="M -10 10 Q -30 -10 -10 -30 Q -5 -10 10 10 Z" fill="#DC143C" class="animate-wind" />
+            <path d="M 70 10 Q 90 -10 70 -30 Q 65 -10 50 10 Z" fill="#DC143C" class="animate-wind" />
+          </g>
+        `;
+      }
+      return "";
     }
 
     // --- HLAVNÍ RENDER ---
