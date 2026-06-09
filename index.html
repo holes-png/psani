@@ -56,7 +56,7 @@
 
   <script>
     // --- VERZE APLIKACE ---
-    const APP_VERSION = "1.8.2";
+    const APP_VERSION = "1.8.3";
     document.getElementById('version-display').innerText = "Verze: " + APP_VERSION;
 
     // --- TRVALÝ KLÍČ K ULOŽENÍ ---
@@ -119,42 +119,42 @@
         ]
       },
       1: {
-        id: 1, name: 'Úroveň 1: Začátečník 🐣',
+        id: 1, name: 'Obtížnost 1: Začátečník 🐣',
         type: 'text',
         expReward: 1, 
         description: 'Lehká slova bez háčků a základní čísla.',
         words: ['pes', 'les', 'oko', 'nos', 'mrak', 'vlak', 'kolo', 'sova', 'auto', 'hrad', 'strom', 'kniha', 'okno', 'voda', 'zima', 'ruka', 'noha', 'ucho', 'zub', 'vlas', 'den', 'noc', 'rak', 'sen', 'syn', 'dar', 'rok', 'let', 'plot', 'byt', 'luk', 'had', 'led', 'med', 'sud', 'lev', 'most', 'kos', 'krk', 'vlk', 'slon', '1', '2', '5', '10', '20', '100']
       },
       2: {
-        id: 2, name: 'Úroveň 2: Průzkumník 🦊',
+        id: 2, name: 'Obtížnost 2: Průzkumník 🦊',
         type: 'text',
         expReward: 2, 
         description: 'Slova s háčky (bez ť, ď, ň) a větší čísla.',
         words: ['žába', 'řeka', 'žebřík', 'nůžky', 'hřebík', 'počítač', 'čokoláda', 'pomeranč', 'růže', 'nůž', 'lžíce', 'talíř', 'hrneček', 'večeře', 'město', 'kříž', 'kůže', 'slunce', 'vítr', 'mýdlo', 'sýr', 'kráva', 'pták', 'myš', 'léto', 'březen', 'září', 'říjen', 'škola', 'školka', 'žák', 'učitel', '15', '42', '1000', '2024']
       },
       3: {
-        id: 3, name: 'Úroveň 3: Šikula 🐯',
+        id: 3, name: 'Obtížnost 3: Šikula 🐯',
         type: 'text',
         expReward: 3, 
         description: 'Jednoduchá spojení 2 až 3 slov a čísla.',
         words: ['Pes štěká', 'Slunce zapadá', 'Kočka pije', 'Táta čte', 'Dnes je úterý', 'Mám velký hlad', 'Jdeme ven', 'Auto jede rychle', 'Venku silně prší', 'Zelená tráva', 'Vysoký strom', 'Malý ptáček', 'Bílý mrak', 'Červené jablko', 'Rychlý vlak', 'Hluboká řeka', 'Studená voda', 'Teplý čaj', 'Píšu úkol', 'Čtu si knihu', 'Máma vaří', 'Bratr spí', 'Sestra kreslí', 'Děda pracuje', 'Babička peče', 'Je mi 10 let', 'Kup 5 rohlíků', 'Mám 2 psy']
       },
       4: {
-        id: 4, name: 'Úroveň 4: Spisovatel ✍️',
+        id: 4, name: 'Obtížnost 4: Spisovatel ✍️',
         type: 'text',
         expReward: 4, 
         description: 'Věty s interpunkcí a těžší česká gramatika.',
-        words: ['Ahoj, jak se máš?', 'Dnes prší, viď?', 'Pozor, jede auto!', 'Jablka, hrušky and švestky.', 'Kde jsi byl včera?', 'Uf, to bylo těsné!', 'Koupíš sýr a chléb?', 'Viděl jsi tu labuť?', 'Můj kůň běží rychle.', 'Náměstí je plné lidí.', 'Dáš si se mnou oběd?', 'Hlemýžď se plazí.', 'Kde je to malé štěně?', 'Paměť mi dobře slouží.', 'Mám novou a velkou loď.', 'Máš chuť na čokoládu?', 'Dej mi to nářadí!', 'Zítra bude jistě pršet.', 'Nezapomeň na svůj úkol!', 'Půjdeme dnes do kina?', 'Venku už je velká tma.', 'Dobrou noc, mami!', 'Tati, podívej se!', 'To je překvapení!', 'Koupil jsi 10 jablek?', 'Dnes je 28. října.', 'Vlak jede v 15 hodin.', 'Vezmi si to s sebou!', 'Pojď se mnou ven.', 'Chtěl jsi mi něco říct?', 'Zpíval jsi moc hezky.', 'Děti si hrály na hřišti.', 'Výjimečně se mi to líbí.', 'Slyšel jsi tu novinu?']
+        words: ['Ahoj, jak se máš?', 'Dnes prší, viď?', 'Pozor, jede auto!', 'Jablka, hrušky a švestky.', 'Kde jsi byl včera?', 'Uf, to bylo těsné!', 'Koupíš sýr a chléb?', 'Viděl jsi tu labuť?', 'Můj kůň běží rychle.', 'Náměstí je plné lidí.', 'Dáš si se mnou oběd?', 'Hlemýžď se plazí.', 'Kde je to malé štěně?', 'Paměť mi dobře slouží.', 'Mám novou a velkou loď.', 'Máš chuť na čokoládu?', 'Dej mi to nářadí!', 'Zítra bude jistě pršet.', 'Nezapomeň na svůj úkol!', 'Půjdeme dnes do kina?', 'Venku už je velká tma.', 'Dobrou noc, mami!', 'Tati, podívej se!', 'To je překvapení!', 'Koupil jsi 10 jablek?', 'Dnes je 28. října.', 'Vlak jede v 15 hodin.', 'Vezmi si to s sebou!', 'Pojď se mnou ven.', 'Chtěl jsi mi něco říct?', 'Zpíval jsi moc hezky.', 'Děti si hrály na hřišti.', 'Výjimečně se mi to líbí.', 'Slyšel jsi tu novinu?']
       },
       5: {
-        id: 5, name: 'Úroveň 5: Hacker 💻',
+        id: 5, name: 'Obtížnost 5: Hacker 💻',
         type: 'text',
         expReward: 5, 
         description: 'Skupiny 4 znaků (písmena a jednoduché znaky).',
         words: ['a+B-', 'x?Z!', '1@9&', '+A-b', '=1?2', '!.@,', '&*()', 'A@b*', 'X+y-', '1*2(', 'c&D*', 'E!f?', 'g@H+', '3-4=', 'i,J.', 'k?L!', 'm+N-', '5&6*', 'o(P)', 'q=R+', 's?T!', 'u@V&', 'w+X-', 'y*Z(', '7@8&', '9-0=', 'a.B,', 'c!D?', 'e(F)', 'g*H&']
       },
       6: {
-        id: 6, name: 'Úroveň 6: Ninja klávesnice 🥷',
+        id: 6, name: 'Obtížnost 6: Ninja klávesnice 🥷',
         type: 'text',
         expReward: 6, 
         description: 'Skupiny 6 složitých znaků (často s AltGr).',
@@ -259,6 +259,11 @@
     };
 
     let audioCtx = null;
+    
+    let deathSnapshot = {
+      charLevel: 1,
+      gold: 0
+    };
 
     function loadSave() {
       try {
@@ -441,11 +446,29 @@
           state.hitAnim = true;
           setTimeout(() => { state.hitAnim = false; render(); }, 300);
           if (state.hp <= 0) {
-            state.gameState = 'game_over';
-            saveGame();
-            render();
+            handleDeath();
           }
         }
+    }
+
+    function handleDeath() {
+      // Uložení statistik těsně před vymazáním pro zobrazení na obrazovce konce hry
+      deathSnapshot.charLevel = state.charLevel;
+      deathSnapshot.gold = state.gold;
+
+      state.gameState = 'game_over';
+      
+      // Kompletní vymazání postupu hráče
+      state.charLevel = 1;
+      state.exp = 0;
+      state.gold = 0;
+      state.potions = 0;
+      state.hp = 100;
+      state.ownedPets = [];
+      state.activePet = null;
+      
+      saveGame();
+      render();
     }
 
     function handleStroke(e) {
@@ -692,7 +715,7 @@
           const nextW = pickWord(state.currentLevel);
           state.currentWordObj = nextW;
           state.currentWord = nextW.label || nextW;
-          if (state.hp <= 0) state.gameState = 'game_over';
+          if (state.hp <= 0) handleDeath();
         }
         render();
       }
@@ -1270,7 +1293,7 @@
             
             <div class="mb-8 p-4 bg-indigo-100 rounded-2xl flex flex-wrap items-center justify-center gap-4 text-indigo-900 font-bold text-xl shadow-inner border border-indigo-200">
                 <span>Tvůj aktuální hrdina:</span>
-                <span class="bg-indigo-500 text-white px-5 py-2 rounded-full shadow-md">${HERO_NAMES[state.charLevel]}</span>
+                <span class="bg-indigo-500 text-white px-5 py-2 rounded-full shadow-md">Úroveň ${state.charLevel}: ${HERO_NAMES[state.charLevel]}</span>
                 <span class="text-indigo-700 bg-white px-4 py-1 rounded-full border border-indigo-200">(${state.charLevel >= 12 ? 'MAX LEVEL' : state.exp + ' / ' + expNeededForNextLevel + ' EXP'})</span>
             </div>
 
@@ -1322,12 +1345,12 @@
             ${state.appMode === 'game' ? `
               <div class="max-w-2xl mx-auto mb-8 p-3 bg-indigo-100 rounded-full flex flex-wrap items-center justify-center gap-3 text-indigo-900 font-bold text-lg shadow-inner border border-indigo-200">
                   <span>Hrdina:</span>
-                  <span class="bg-indigo-500 text-white px-4 py-1 rounded-full shadow-md">${HERO_NAMES[state.charLevel]}</span>
+                  <span class="bg-indigo-500 text-white px-4 py-1 rounded-full shadow-md">Úroveň ${state.charLevel}: ${HERO_NAMES[state.charLevel]}</span>
                   <span class="text-indigo-700 bg-white px-3 py-1 rounded-full border border-indigo-200">EXP: ${state.charLevel >= 12 ? 'MAX' : state.exp + ' / ' + expNeededForNextLevel}</span>
               </div>
             ` : ''}
 
-            <p class="text-xl text-gray-500 mb-10">Vyber si úroveň. Nově můžeš trénovat i speciální klávesy!</p>
+            <p class="text-xl text-gray-500 mb-10">Vyber si obtížnost psaní. Nově můžeš trénovat i speciální klávesy!</p>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">${cards}</div>
           </div>
         `;
@@ -1339,7 +1362,8 @@
           cards += `
             <div class="flex flex-col items-center bg-gray-50 p-6 rounded-3xl border-4 border-gray-200 hover:border-indigo-400 transition-all shadow-md">
               ${renderAvatar(i, true)}
-              <h4 class="mt-4 font-black text-indigo-900 text-lg">${HERO_NAMES[i]}</h4>
+              <span class="text-xs font-extrabold text-indigo-500 uppercase tracking-widest mt-4">Úroveň ${i}</span>
+              <h4 class="mt-1 font-black text-indigo-900 text-lg">${HERO_NAMES[i]}</h4>
               <div class="mt-2 bg-amber-100 text-amber-900 px-5 py-2 rounded-full font-black text-sm border-2 border-amber-300 shadow-sm w-full text-center whitespace-nowrap">
                 ${i === 1 ? 'STARTOVNÍ' : `ODEMČENÍ: ${getExpNeeded(i-1)} EXP`}
               </div>
@@ -1449,7 +1473,7 @@
                 <div class="relative flex flex-col items-center">
                   ${state.isBossFight ? `<div class="absolute -top-10 text-white font-black text-3xl animate-pulse text-center w-full z-10">BOSS ÚTOČÍ!</div>` : ''}
                   ${renderAvatar(state.charLevel)}
-                  <div class="mt-2 bg-indigo-900 text-white font-bold py-1 px-4 rounded-full text-sm shadow-md z-10">${HERO_NAMES[state.charLevel]}</div>
+                  <div class="mt-2 bg-indigo-900 text-white font-bold py-1 px-4 rounded-full text-sm shadow-md z-10">Úroveň ${state.charLevel}: ${HERO_NAMES[state.charLevel]}</div>
                 </div>
                 <div class="flex-grow max-w-lg w-full flex flex-col gap-6">
                   <div>
@@ -1488,9 +1512,12 @@
             </div>
 
             <div class="${state.isBossFight ? 'bg-red-50 border-red-400' : 'bg-white'} border-4 rounded-3xl p-4 sm:p-8 text-center relative">
+              <div class="absolute top-4 left-4 bg-indigo-100 text-indigo-800 font-black px-4 py-2 rounded-xl text-xs sm:text-sm shadow-sm select-none">
+                ${state.isBossFight ? '🔥 SOUBOJ S BOSSEM' : `${lvl.name}`}
+              </div>
               <button onclick="state.showHint=!state.showHint; render();" class="absolute top-4 right-4 bg-blue-100 hover:bg-blue-200 font-bold px-4 py-2 rounded-full text-blue-700 z-20">💡 Pomoc</button>
               
-              <div class="text-gray-400 font-bold uppercase tracking-widest mb-4 pt-10 sm:pt-0">${isKeyMode ? 'Zkouška ovládání:' : 'Napiš přesně tento text:'}</div>
+              <div class="text-gray-400 font-bold uppercase tracking-widest mb-4 pt-14 sm:pt-6">${isKeyMode ? 'Zkouška ovládání:' : 'Napiš přesně tento text:'}</div>
               <div class="text-4xl sm:text-5xl md:text-6xl font-black mb-10 tracking-wide break-all">${lettersHtml}</div>
               
               <div class="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
@@ -1530,12 +1557,12 @@
           <div class="max-w-2xl mx-auto bg-red-800 rounded-3xl shadow-2xl p-10 text-center text-white border-4 border-red-500">
             <div class="text-8xl mb-6">💀</div>
             <h1 class="text-5xl font-black mb-4">Konec hry!</h1>
-            <p class="text-xl mb-8">Došly ti životy. Ale získané zkušenosti a zlaťáky ti zůstávají!</p>
+            <p class="text-xl mb-8">Došly ti životy. Tvůj hrdina padl v boji a jeho postup byl kompletně vymazán. Zkus to znovu od nuly!</p>
             <div class="bg-red-950 rounded-xl p-8 mb-8 text-left grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <h3 class="font-bold text-red-300 mb-2 uppercase border-b border-red-800 pb-2">Tvoje Postava</h3>
-                <p>Úroveň: <strong class="text-amber-400">${state.charLevel}</strong></p>
-                <p>Zlaťáky celkem: <strong class="text-amber-400">${state.gold}</strong></p>
+                <h3 class="font-bold text-red-300 mb-2 uppercase border-b border-red-800 pb-2">Tvá Postava (Před smrtí)</h3>
+                <p>Dosažená úroveň: <strong class="text-amber-400">${deathSnapshot.charLevel}</strong></p>
+                <p>Zlaťáky celkem: <strong class="text-amber-400">${deathSnapshot.gold}</strong></p>
               </div>
               <div>
                 <h3 class="font-bold text-red-300 mb-2 uppercase border-b border-red-800 pb-2">Statistiky Lekce</h3>
